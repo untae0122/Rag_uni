@@ -123,6 +123,15 @@ def initialize_globals():
         env = wrappers.HotPotQAWrapper(env, split="dev")
     
     env = wrappers.LoggingWrapper(env)
+
+def step(env, action):
+    attempts = 0
+    while attempts < 10:
+        try:
+            return env.step(action)
+        except requests.exceptions.Timeout:
+            attempts += 1
+
     
     # Load Prompts
     with open(prompt_file, 'r') as f:
