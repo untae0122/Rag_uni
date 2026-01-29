@@ -117,7 +117,7 @@ class GeneralDatasetWrapper(gym.Wrapper):
         q = item.get('question') or item.get('query')
         
         # Handle various answer formats
-        a = item.get('answer') or item.get('answers') or item.get('correct_answer')
+        a = item.get('answer') or item.get('answers') or item.get('correct_answer') or item.get('correct answer')
         
         # HotpotQA specific: 'answer' is string, but some datasets use list
         if isinstance(a, list) and len(a) > 0:
@@ -125,7 +125,10 @@ class GeneralDatasetWrapper(gym.Wrapper):
         
         if q and a:
             self.data.append((q, a))
-    
+        else:
+            # Raise explicit error as requested by user to ensure data integrity
+            raise ValueError(f"Malformed data at index {i}: Missing 'question' or 'answer'. Item keys: {list(item.keys())}")
+
     print(f"Loaded {len(self.data)} items.")
     self.data_idx = 0
 
@@ -136,10 +139,14 @@ class GeneralDatasetWrapper(gym.Wrapper):
     except:
       pass
     self.env.reset(seed=seed, return_info=return_info, options=options)
-    self.data_idx = int(np.random.randint(len(self.data))) if idx is None else idx
-    # Bound check
-    if self.data_idx >= len(self.data):
-        self.data_idx = len(self.data) - 1
+    
+    # Handle explicit idx
+    if idx is not None:
+        if idx < 0 or idx >= len(self.data):
+             raise IndexError(f"Requested idx {idx} is out of bounds (0-{len(self.data)-1}). Data loading mismatch?")
+        self.data_idx = idx
+    else:
+        self.data_idx = int(np.random.randint(len(self.data)))
         
     observation = f"Question: {self.data[self.data_idx][0]}"
     info = self._get_info()
