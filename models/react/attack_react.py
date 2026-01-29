@@ -11,6 +11,12 @@ import argparse
 import re
 import string
 from collections import Counter, defaultdict
+from vllm import LLM, SamplingParams
+
+from transformers import HfArgumentParser
+from src.common.config import CommonArguments
+from src.attacks.attack_manager import AttackManager, AttackMode
+
 llm_model = None
 args = None
 attack_manager = None
