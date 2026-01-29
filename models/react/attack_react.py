@@ -311,7 +311,8 @@ def webthink(idx=None, adv_item=None, prompt=None, to_print=True):
             'poisoned_count': step_poisoned_count,
             'total_count': step_total_count,
             'is_search': is_search_action,
-            'poisoned_flags': step_poisoned_flags
+            'poisoned_flags': step_poisoned_flags,
+            'retrieved_results': info.get('retrieved_results', [])
         })
         
         step_str = f"Thought {i}: {thought}\nAction {i}: {action}\nObservation {i}: {obs}\n"
@@ -537,7 +538,7 @@ if __name__ == "__main__":
                     'subquery': subquery,
                     'is_poisoned': step_stat.get('any_poisoned', False),
                     'poisoned_flags': step_stat.get('poisoned_flags', []),
-                    'retrieved_results': step_stat.get('observation', '') # Duplicate for standard schema
+                    'retrieved_results': step_stat.get('retrieved_results', [])
                 }
                 steps.append(step_data)
             
