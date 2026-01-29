@@ -6,6 +6,7 @@ GPU_ID=${1:-0}
 MODEL_PATH="/home/work/Redteaming/data1/REDTEAMING_LLM/cache/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe"
 INDEX_DIR="datasets/hotpotqa/e5_index"
 CORPUS_PATH="datasets/hotpotqa/corpus.jsonl"
+QID_TO_IDX_PATH="datasets/hotpotqa/qid_to_idx.json"
 DATA_PATH="datasets/hotpotqa/hotpotqa100.json"
 
 export CUDA_VISIBLE_DEVICES=$GPU_ID
@@ -17,4 +18,5 @@ python models/react/attack_react.py \
     --index_dir $INDEX_DIR \
     --corpus_path $CORPUS_PATH \
     --data_path $DATA_PATH \
+    --qid_to_idx_path $QID_TO_IDX_PATH \
     --output_dir results/trajectory_results/react
