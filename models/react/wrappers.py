@@ -142,8 +142,6 @@ class GeneralDatasetWrapper(gym.Wrapper):
     
     # Handle explicit idx
     if idx is not None:
-        if idx < 0 or idx >= len(self.data):
-             raise IndexError(f"Requested idx {idx} is out of bounds (0-{len(self.data)-1}). Data loading mismatch?")
         self.data_idx = idx
     else:
         self.data_idx = int(np.random.randint(len(self.data)))
