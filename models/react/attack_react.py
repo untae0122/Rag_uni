@@ -176,7 +176,11 @@ def step(env, action):
                 attack_manager = None
 
 
-def webthink(idx=None, adv_item=None, prompt=webthink_prompt, to_print=True):
+def webthink(idx=None, adv_item=None, prompt=None, to_print=True):
+    # Use global prompt if not provided
+    if prompt is None:
+        prompt = webthink_prompt
+        
     question = env.reset(idx=idx)
     if to_print:
         print(idx, question)
