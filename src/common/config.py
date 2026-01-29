@@ -43,7 +43,13 @@ class CommonArguments(TrainingArguments):
     )
     
     # --- Attack/Model Params ---
+    model_path: Optional[str] = field(default=None, metadata={'help': 'Path to generator model (LLM)'})
     adv_model_path: Optional[str] = field(default=None, metadata={'help': 'Path to adversary model (for dynamic modes)'})
+    
+    # --- Remote Attacker Config ---
+    attacker_api_base: Optional[str] = field(default=None, metadata={'help': 'vLLM API Base URL for Attacker (e.g. http://localhost:8001/v1)'})
+    attacker_api_key: Optional[str] = field(default="EMPTY", metadata={'help': 'API Key for Attacker vLLM'})
+    attacker_model_name: Optional[str] = field(default=None, metadata={'help': 'Model name to use in API call'})
 
     # --- Legacy/Corag Specific (kept for compatibility) ---
     eval_task: str = field(default='hotpotqa', metadata={'help': 'evaluation task'})

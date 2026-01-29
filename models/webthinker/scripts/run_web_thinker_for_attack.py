@@ -1120,9 +1120,21 @@ async def main_async():
     attack_manager = None
     if args.attack_mode in [AttackMode.DYNAMIC_RETRIEVAL.value, AttackMode.ORACLE_INJECTION.value, AttackMode.SURROGATE.value]:
         print(f"Initializing AttackManager for mode: {args.attack_mode}")
-        # Async generation via aux_client
+        
+        # Async generation via aux_client or new config
+        # WebThinker uses 'aux_client' for helper models. We can pass that OR use separate config.
+        # But AttackManager now supports remote via 'api_base'.
+        
+        # If attacker_api_base is provided, use it.
+        # If not, WebThinker script manually passes 'aux_client' to 'generate_adversarial_content_async'.
+        # We can construct AttackManager with empty generator and rely on 'generator_client' argument being passed?
+        # OR use api_base.
+        
         attack_manager = AttackManager(
-            adv_generator=None, # Will be passed in async call manually as client
+            api_base=getattr(args, 'attacker_api_base', None), # Config might be attached dynamically
+            api_key=getattr(args, 'attacker_api_key', "EMPTY"),
+            model_name=getattr(args, 'attacker_model_name', args.aux_model_name),
+            adv_generator=None,
             adv_tokenizer=None,
             adv_sampling_params=None
         )

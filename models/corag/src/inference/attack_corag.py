@@ -107,29 +107,39 @@ if args.attack_mode in [AttackMode.DYNAMIC_RETRIEVAL.value, AttackMode.ORACLE_IN
     # Let's assume we load a second model for attack (as in original script) or use the same if convenient.
     # Original generate_adv_texts used explicit LLM() load.
     
-    # Load attacker model (Qwen or similar)
-    from vllm import LLM
-    attacker_model_path = "/home/work/Redteaming/data1/REDTEAMING_LLM/cache/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe"
-    print(f"Loading attacker model from {attacker_model_path}...")
-    # Be careful with GPU memory directly. 
-    # If corag_agent uses VllmClient (HTTP), we have memory for local LLM.
-    
-    attacker_model = LLM(
-        model=attacker_model_path,
-        tensor_parallel_size=1,
-        dtype="auto",
-        trust_remote_code=True,
-        max_model_len=4096,
-        gpu_memory_utilization=0.4 # Adjust
-    )
-    attacker_tokenizer = attacker_model.get_tokenizer()
-    attacker_sampling_params = SamplingParams(temperature=0.7, top_p=0.9, max_tokens=1024)
-    
-    attack_manager = AttackManager(
-        adv_generator=attacker_model,
-        adv_tokenizer=attacker_tokenizer,
-        adv_sampling_params=attacker_sampling_params
-    )
+    # If remote config is provided, use it (Preferred)
+    if args.attacker_api_base:
+        print(f"Initializing Remote AttackManager: {args.attacker_api_base}")
+        attack_manager = AttackManager(
+            api_base=args.attacker_api_base,
+            api_key=args.attacker_api_key,
+            model_name=args.attacker_model_name if args.attacker_model_name else "Qwen/Qwen2.5-32B-Instruct",
+            adv_sampling_params=SamplingParams(temperature=0.7, max_tokens=1024)
+        )
+    else:
+        # Fallback to Local Loading (Original Logic)
+        # Load attacker model (Qwen or similar)
+        from vllm import LLM
+        # Use args.adv_model_path if provided, else hardcoded default
+        attacker_model_path = args.adv_model_path if args.adv_model_path else "/home/work/Redteaming/data1/REDTEAMING_LLM/cache/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe"
+        print(f"Loading attacker model (Local) from {attacker_model_path}...")
+        
+        attacker_model = LLM(
+            model=attacker_model_path,
+            tensor_parallel_size=1,
+            dtype="auto",
+            trust_remote_code=True,
+            max_model_len=4096,
+            gpu_memory_utilization=0.4 # Adjust
+        )
+        attacker_tokenizer = attacker_model.get_tokenizer()
+        attacker_sampling_params = SamplingParams(temperature=0.7, top_p=0.9, max_tokens=1024)
+        
+        attack_manager = AttackManager(
+            adv_generator=attacker_model,
+            adv_tokenizer=attacker_tokenizer,
+            adv_sampling_params=attacker_sampling_params
+        )
 
 if args.attack_mode in [AttackMode.DYNAMIC_RETRIEVAL.value, AttackMode.ORACLE_INJECTION.value]:
     print(f"Using MalCoRagAgent for mode: {args.attack_mode}")

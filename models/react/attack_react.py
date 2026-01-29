@@ -30,12 +30,15 @@ print(f"Arguments: {args}")
 
 # Initialize vLLM (limit memory to leave room for retriever index)
 print("Initializing vLLM model...")
+model_path = args.model_path if args.model_path else "/home/work/Redteaming/data1/REDTEAMING_LLM/cache/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe"
+print(f"Using model: {model_path}")
+
 llm_model = LLM(
-    model="/home/work/Redteaming/data1/REDTEAMING_LLM/cache/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe", 
+    model=model_path, 
     dtype="half", 
     trust_remote_code=True,
     max_model_len=50000,
-    gpu_memory_utilization=0.80 # A6000(48GB) 기준, 인덱스(~11GB)를 고려하여 60%만 사용
+    gpu_memory_utilization=0.60 # A6000(48GB) 기준, 인덱스(~11GB)를 고려하여 60%만 사용 (Updated from 0.80 to be safer)
 )
 
 def clean_str(s):
@@ -139,23 +142,45 @@ Here are some examples.
 webthink_prompt = instruction + webthink_examples
 
 # Initialize AttackManager if needed
+# Initialize AttackManager if needed
 attack_manager = None
 if args.attack_mode in [AttackMode.DYNAMIC_RETRIEVAL.value, AttackMode.ORACLE_INJECTION.value, AttackMode.SURROGATE.value]:
-    print(f"Initializing AttackManager for mode: {args.attack_mode}")
-    # We reuse the same LLM for attack generation to save memory
-    # We need a tokenizer that supports chat template. vLLM's LLM class usually gets it.
-    # We'll assume llm_model has a get_tokenizer() or we load one.
-    from transformers import AutoTokenizer
-    adv_tokenizer = AutoTokenizer.from_pretrained("/home/work/Redteaming/data1/REDTEAMING_LLM/cache/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe", trust_remote_code=True)
+    # CASE 1: Remote Attacker (Preferred)
+    if args.attacker_api_base:
+        print(f"Initializing Remote AttackManager: {args.attacker_api_base}")
+        attack_manager = AttackManager(
+            api_base=args.attacker_api_base,
+            api_key=args.attacker_api_key,
+            model_name=args.attacker_model_name if args.attacker_model_name else "Qwen/Qwen2.5-32B-Instruct",
+            adv_sampling_params=SamplingParams(temperature=0.7, max_tokens=1024) # Used for max_tokens only in remote
+        )
     
-    # Sampling params for adversary (can be same or different)
-    adv_sampling_params = SamplingParams(temperature=0.7, top_p=0.9, max_tokens=1024)
-    
-    attack_manager = AttackManager(
-        adv_generator=llm_model,
-        adv_tokenizer=adv_tokenizer,
-        adv_sampling_params=adv_sampling_params
-    )
+    # CASE 2: Local Attacker (Reuse)
+    else:
+        # Reuse the main model if no remote config
+        adv_path = args.adv_model_path if args.adv_model_path else model_path
+        print(f"Initializing Local AttackManager (Reuse Strategy): {adv_path}")
+        
+        try:
+             if adv_path == model_path:
+                 adv_generator = llm_model
+             else:
+                 print("[WARNING] Loading second vLLM instance for adversary! OOM risk.")
+                 adv_generator = LLM(model=adv_path, tensor_parallel_size=1, gpu_memory_utilization=0.3)
+                 
+             from transformers import AutoTokenizer
+             adv_tokenizer = AutoTokenizer.from_pretrained(adv_path, trust_remote_code=True)
+             
+             attack_manager = AttackManager(
+                 adv_generator=adv_generator,
+                 adv_tokenizer=adv_tokenizer,
+                 adv_sampling_params=SamplingParams(temperature=0.7, max_tokens=512)
+             )
+        except Exception as e:
+            print(f"Failed to init AttackManager: {e}")
+            attack_manager = None
+else:
+    attack_manager = None
 
 def webthink(idx=None, adv_item=None, prompt=webthink_prompt, to_print=True):
     question = env.reset(idx=idx)

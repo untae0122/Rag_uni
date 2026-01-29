@@ -1,10 +1,51 @@
 # RAG Unified Experiment Guide
 
 This repository contains the unified codebase for conducting adversarial attacks on RAG agents (ReAct, WebThinker, Corag).
-The `src/common/config.py` and `src/attacks/attack_manager.py` handle the core logic for unified experiment modes.
+The `src/common/config.py` and `src/attacks/attack_manager.py` handle the core logic for unif## 🚀 Usage Guide
 
-## Data Preparation & Directory Structure
-To run all experiments (1-6) without issues, ensure your data directory is structured as follows. 
+This repository supports running RAG experiments under various attack conditions (Base, Static, Dynamic, Oracle).
+
+### 1. Prerequisites
+- **vLLM Server (Optional but Recommended)**: To prevent OOM errors during dynamic attacks, run the **Attacker Model** as a separate vLLM server process.
+  ```bash
+  # Launch Attacker Server on GPU 4, Port 8001
+  CUDA_VISIBLE_DEVICES=4 python -m vllm.entrypoints.openai.api_server \
+      --model /path/to/attacker/model \
+      --port 8001
+  ```
+
+### 2. Running Experiments
+We provide helper scripts in `scripts/` folder for easy execution. All scripts support connecting to the remote Attacker server.
+
+#### ReAct Experiments
+```bash
+# Run Base Mode (Clean)
+./scripts/run_react_experiments.sh base 0
+
+# Run Dynamic Retrieval Attack (requires Attacker Server)
+# Ensure ATTACKER_API_BASE is set to http://localhost:8001/v1 in the script
+./scripts/run_react_experiments.sh dynamic 0
+```
+
+#### Corag Experiments
+```bash
+# Corag Agent usually requires its own vLLM server for the Agent as well.
+# Configure VLLM_HOST/PORT in the script.
+./scripts/run_corag_experiments.sh base 0
+```
+
+#### WebThinker Experiments
+```bash
+# WebThinker requires a vLLM server for the Agent (e.g. port 8000)
+# And optionally an Attacker server (e.g. port 8001) for dynamic attacks.
+./scripts/run_webthinker_experiments.sh dynamic 0
+```
+
+### 3. Scripts Configuration
+You **must** edit the path variables in `scripts/*.sh` to match your environment before running:
+- `MODEL_PATH`: Path to the Agent LLM.
+- `INDEX_DIR`: Path to E5 Index.
+- `ATTACKER_API_BASE`: URL of the Attacker vLLM server.sues, ensure your data directory is structured as follows. 
 It is recommended to place the `datasets` folder parallel to `rag_unified` or update the paths in your commands accordingly.
 
 ```
