@@ -1,0 +1,57 @@
+INFO 01-26 11:59:20 api_server.py:459] vLLM API server version 0.6.0
+INFO 01-26 11:59:20 api_server.py:460] args: Namespace(model_tag='corag/CoRAG-Llama3.1-8B-MultihopQA', config='', host=None, port=8000, uvicorn_log_level='info', allow_credentials=False, allowed_origins=['*'], allowed_methods=['*'], allowed_headers=['*'], api_key='token-123', lora_modules=None, prompt_adapters=None, chat_template=None, response_role='assistant', ssl_keyfile=None, ssl_certfile=None, ssl_ca_certs=None, ssl_cert_reqs=0, root_path=None, middleware=[], return_tokens_as_token_ids=False, disable_frontend_multiprocessing=False, enable_auto_tool_choice=False, tool_call_parser=None, model='corag/CoRAG-Llama3.1-8B-MultihopQA', tokenizer=None, skip_tokenizer_init=False, revision=None, code_revision=None, tokenizer_revision=None, tokenizer_mode='auto', trust_remote_code=False, download_dir=None, load_format='auto', dtype='auto', kv_cache_dtype='auto', quantization_param_path=None, max_model_len=8192, guided_decoding_backend='outlines', distributed_executor_backend=None, worker_use_ray=False, pipeline_parallel_size=1, tensor_parallel_size=4, max_parallel_loading_workers=None, ray_workers_use_nsight=False, block_size=16, enable_prefix_caching=False, disable_sliding_window=False, use_v2_block_manager=False, num_lookahead_slots=0, seed=0, swap_space=4, cpu_offload_gb=0, gpu_memory_utilization=0.5, num_gpu_blocks_override=None, max_num_batched_tokens=2048, max_num_seqs=256, max_logprobs=20, disable_log_stats=False, quantization=None, rope_scaling=None, rope_theta=None, enforce_eager=False, max_context_len_to_capture=None, max_seq_len_to_capture=8192, disable_custom_all_reduce=True, tokenizer_pool_size=0, tokenizer_pool_type='ray', tokenizer_pool_extra_config=None, limit_mm_per_prompt=None, enable_lora=False, max_loras=1, max_lora_rank=16, lora_extra_vocab_size=256, lora_dtype='auto', long_lora_scaling_factors=None, max_cpu_loras=None, fully_sharded_loras=False, enable_prompt_adapter=False, max_prompt_adapters=1, max_prompt_adapter_token=0, device='auto', num_scheduler_steps=1, scheduler_delay_factor=0.0, enable_chunked_prefill=True, speculative_model=None, speculative_model_quantization=None, num_speculative_tokens=None, speculative_draft_tensor_parallel_size=None, speculative_max_model_len=None, speculative_disable_by_batch_size=None, ngram_prompt_lookup_max=None, ngram_prompt_lookup_min=None, spec_decoding_acceptance_method='rejection_sampler', typical_acceptance_sampler_posterior_threshold=None, typical_acceptance_sampler_posterior_alpha=None, disable_logprobs_during_spec_decoding=None, model_loader_extra_config=None, ignore_patterns=[], preemption_mode=None, served_model_name=None, qlora_adapter_name_or_path=None, otlp_traces_endpoint=None, collect_detailed_traces=None, disable_async_output_proc=False, override_neuron_config=None, engine_use_ray=False, disable_log_requests=True, max_log_len=None, dispatch_function=<function serve at 0x7f8470b03400>)
+INFO 01-26 11:59:21 api_server.py:160] Multiprocessing frontend to use ipc:///tmp/8d1cc67a-bdbc-4225-87a7-10de2ab7f047 for RPC Path.
+INFO 01-26 11:59:21 api_server.py:176] Started engine process with PID 678048
+INFO 01-26 11:59:27 config.py:890] Defaulting to use mp for distributed inference
+INFO 01-26 11:59:27 config.py:999] Chunked prefill is enabled with max_num_batched_tokens=2048.
+INFO 01-26 11:59:27 llm_engine.py:213] Initializing an LLM engine (v0.6.0) with config: model='corag/CoRAG-Llama3.1-8B-MultihopQA', speculative_config=None, tokenizer='corag/CoRAG-Llama3.1-8B-MultihopQA', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, override_neuron_config=None, rope_scaling=None, rope_theta=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=8192, download_dir=None, load_format=LoadFormat.AUTO, tensor_parallel_size=4, pipeline_parallel_size=1, disable_custom_all_reduce=True, quantization=None, enforce_eager=False, kv_cache_dtype=auto, quantization_param_path=None, device_config=cuda, decoding_config=DecodingConfig(guided_decoding_backend='outlines'), observability_config=ObservabilityConfig(otlp_traces_endpoint=None, collect_model_forward_time=False, collect_model_execute_time=False), seed=0, served_model_name=corag/CoRAG-Llama3.1-8B-MultihopQA, use_v2_block_manager=False, num_scheduler_steps=1, enable_prefix_caching=False, use_async_output_proc=True)
+Process SpawnProcess-1:
+Traceback (most recent call last):
+  File "/home/work/.conda/envs/corag/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/home/work/.conda/envs/corag/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/work/.conda/envs/corag/lib/python3.10/site-packages/vllm/entrypoints/openai/rpc/server.py", line 236, in run_rpc_server
+    server = AsyncEngineRPCServer(async_engine_args, usage_context, rpc_path)
+  File "/home/work/.conda/envs/corag/lib/python3.10/site-packages/vllm/entrypoints/openai/rpc/server.py", line 34, in __init__
+    self.engine = AsyncLLMEngine.from_engine_args(
+  File "/home/work/.conda/envs/corag/lib/python3.10/site-packages/vllm/engine/async_llm_engine.py", line 735, in from_engine_args
+    engine = cls(
+  File "/home/work/.conda/envs/corag/lib/python3.10/site-packages/vllm/engine/async_llm_engine.py", line 615, in __init__
+    self.engine = self._init_engine(*args, **kwargs)
+  File "/home/work/.conda/envs/corag/lib/python3.10/site-packages/vllm/engine/async_llm_engine.py", line 835, in _init_engine
+    return engine_class(*args, **kwargs)
+  File "/home/work/.conda/envs/corag/lib/python3.10/site-packages/vllm/engine/async_llm_engine.py", line 262, in __init__
+    super().__init__(*args, **kwargs)
+  File "/home/work/.conda/envs/corag/lib/python3.10/site-packages/vllm/engine/llm_engine.py", line 282, in __init__
+    self.tokenizer = self._init_tokenizer()
+  File "/home/work/.conda/envs/corag/lib/python3.10/site-packages/vllm/engine/llm_engine.py", line 586, in _init_tokenizer
+    return init_tokenizer_from_configs(
+  File "/home/work/.conda/envs/corag/lib/python3.10/site-packages/vllm/transformers_utils/tokenizer_group/__init__.py", line 28, in init_tokenizer_from_configs
+    return get_tokenizer_group(parallel_config.tokenizer_pool_config,
+  File "/home/work/.conda/envs/corag/lib/python3.10/site-packages/vllm/transformers_utils/tokenizer_group/__init__.py", line 49, in get_tokenizer_group
+    return tokenizer_cls.from_config(tokenizer_pool_config, **init_kwargs)
+  File "/home/work/.conda/envs/corag/lib/python3.10/site-packages/vllm/transformers_utils/tokenizer_group/tokenizer_group.py", line 30, in from_config
+    return cls(**init_kwargs)
+  File "/home/work/.conda/envs/corag/lib/python3.10/site-packages/vllm/transformers_utils/tokenizer_group/tokenizer_group.py", line 23, in __init__
+    self.tokenizer = get_tokenizer(self.tokenizer_id, **tokenizer_config)
+  File "/home/work/.conda/envs/corag/lib/python3.10/site-packages/vllm/transformers_utils/tokenizer.py", line 120, in get_tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(
+  File "/home/work/.conda/envs/corag/lib/python3.10/site-packages/transformers/models/auto/tokenization_auto.py", line 857, in from_pretrained
+    tokenizer_config = get_tokenizer_config(pretrained_model_name_or_path, **kwargs)
+  File "/home/work/.conda/envs/corag/lib/python3.10/site-packages/transformers/models/auto/tokenization_auto.py", line 689, in get_tokenizer_config
+    resolved_config_file = cached_file(
+  File "/home/work/.conda/envs/corag/lib/python3.10/site-packages/transformers/utils/hub.py", line 403, in cached_file
+    resolved_file = hf_hub_download(
+  File "/home/work/.conda/envs/corag/lib/python3.10/site-packages/huggingface_hub/utils/_validators.py", line 114, in _inner_fn
+    return fn(*args, **kwargs)
+  File "/home/work/.conda/envs/corag/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 1007, in hf_hub_download
+    return _hf_hub_download_to_cache_dir(
+  File "/home/work/.conda/envs/corag/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 1168, in _hf_hub_download_to_cache_dir
+    _download_to_tmp_and_move(
+  File "/home/work/.conda/envs/corag/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 1720, in _download_to_tmp_and_move
+    xet_get(
+  File "/home/work/.conda/envs/corag/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 626, in xet_get
+    download_files(
+RuntimeError: Data processing error: CAS service error : ReqwestMiddleware Error: Request failed after 5 retries
+ERROR 01-26 12:24:52 api_server.py:186] RPCServer process died before responding to readiness probe

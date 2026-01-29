@@ -1,0 +1,52 @@
+[
+    {
+        "question": "Josh Trank and Mike Valerio both work in what industry?",
+        "answer": "entertainment",
+        "type": "comparison"
+    },
+    {
+        "question": "Blues to the Bush is an album by The Who that can still be found on what e-commerce platform that was founded in 1995?",
+        "answer": "eBay Inc.",
+        "type": "bridge"
+    },
+    {
+        "question": "Socialist conferences were held with what countries that opposed the Central Powers in the First World War?",
+        "answer": "The Allies of World War I",
+        "type": "bridge"
+    },
+    {
+        "question": "What is the date of birth of the English inventor that developed the Richard Hornsby & Sons oil engine? ",
+        "answer": "28 January 1864",
+        "type": "bridge"
+    },
+    {
+        "question": "What is the birthdate of this Australian dramatic coloratura soprano, who taught Simon Gilbert?",
+        "answer": "7 November 192610",
+        "type": "bridge"
+    },
+    {
+        "question": "After coaching the red raiders to several winning seasons, where does Mike Leach currently coach at?",
+        "answer": "Washington State",
+        "type": "bridge"
+    },
+    {
+        "question": "What variety of mockingbird is the mascot of the University of Tennessee at Chattanooga?",
+        "answer": "northern mockingbird",
+        "type": "bridge"
+    },
+    {
+        "question": "Trilochanapala, last king of the Kabul Shahi dynasty, ruled in the site of which modern country?",
+        "answer": "Afghanistan",
+        "type": "bridge"
+    },
+    {
+        "question": "The Fort Worth Zoo was rated as one of the top zoos by a magazine published where? ",
+        "answer": "Birmingham, Alabama",
+        "type": "bridge"
+    },
+    {
+        "question": "Who coined the phrase that marked the period which included Sir Alexander Woodford's command of the 2nd battalion of the coldstream guards at the battle of waterloo?",
+        "answer": "the prefect of Paris, Gaspard",
+        "type": "bridge"
+    }
+]

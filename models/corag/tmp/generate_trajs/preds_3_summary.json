@@ -1,0 +1,10 @@
+{
+    "summary": {
+        "total_questions": 1852,
+        "accuracy_em": 0.5669546436285097,
+        "accuracy_em_ratio": "1050/1852",
+        "accuracy_f1": 0.7921166306695464,
+        "accuracy_f1_count": 1467,
+        "average_f1_score": 0.6995953299359287
+    }
+}
