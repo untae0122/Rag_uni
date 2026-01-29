@@ -180,11 +180,49 @@ def initialize_globals():
 
 def webthink(idx=None, adv_item=None, prompt=None, to_print=True):
     # Use global prompt if not provided
+    # Use global prompt if not provided
     if prompt is None:
         prompt = webthink_prompt
         
-    question = env.reset(idx=idx)
+    # [Fix] Decouple external idx (from qid_to_idx) and internal env idx
+    # The external idx might be out of range for the local dataset loaded in env.
+    # We try to find the corresponding local index by matching the question string.
+    local_idx = None
+    target_question = adv_item['question']
+    
+    # Try to access underlying data to find the index
+    # unwrapped env chain: LoggingWrapper -> GeneralDatasetWrapper (or HotPotQAWrapper) -> E5WikiEnv
+    # We need to find the wrapper that holds .data
+    current_env = env
+    dataset_env = None
+    
+    # Simple unwrapping loop
+    while hasattr(current_env, 'env'):
+        if hasattr(current_env, 'data'):
+            dataset_env = current_env
+            break
+        current_env = current_env.env
+    
+    if dataset_env and hasattr(dataset_env, 'data'):
+        # Search for matching question
+        # data is list of (question, answer) tuples or similar
+        for i, item in enumerate(dataset_env.data):
+            # item[0] is usually question string
+            if item[0].strip() == target_question.strip():
+                local_idx = i
+                break
+    
+    if local_idx is None:
+        if idx is not None and dataset_env and idx < len(dataset_env.data):
+             # Fallback to provided idx if valid
+             local_idx = idx
+        else:
+             print(f"[WARNING] Could not find local index for question: {target_question[:50]}... using random/0")
+             local_idx = 0 # Safety fallback
+             
+    question = env.reset(idx=local_idx)
     if to_print:
+        print(f"External Index: {idx} | Local Index: {local_idx}")
         print(idx, question)
     prompt += question + "\n"
     n_calls, n_badcalls = 0, 0
