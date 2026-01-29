@@ -49,6 +49,14 @@ def llm(prompt, stop=["\n"]):
     sampling_params = SamplingParams(temperature=0, top_p=1, max_tokens=100, stop=custom_stop)
     outputs = llm_model.generate([prompt], sampling_params, use_tqdm=False)
     return outputs[0].outputs[0].text
+    
+def step(env, action):
+    attempts = 0
+    while attempts < 10:
+        try:
+            return env.step(action)
+        except requests.exceptions.Timeout:
+            attempts += 1
 
 # Environment Setup
 root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
@@ -124,13 +132,7 @@ def initialize_globals():
     
     env = wrappers.LoggingWrapper(env)
 
-def step(env, action):
-    attempts = 0
-    while attempts < 10:
-        try:
-            return env.step(action)
-        except requests.exceptions.Timeout:
-            attempts += 1
+
 
     
     # Load Prompts
