@@ -562,6 +562,8 @@ if __name__ == "__main__":
             
         except Exception as e:
             print(f"Error processing question {qid}: {e}")
+            import traceback
+            traceback.print_exc()
             continue
 
     # Final Save
