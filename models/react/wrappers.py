@@ -97,13 +97,26 @@ class GeneralDatasetWrapper(gym.Wrapper):
 
     # Standardize data format: list of (question, answer)
     self.data = []
-    for item in self.data_raw:
+    self.data = []
+    for i, item in enumerate(self.data_raw):
+        if isinstance(item, str):
+             # Handle case where item is just a string (ID or Question?)
+             # Assuming it's a question for now, but mark invalid answer
+             # print(f"[WARNING] Item {i} is a string, expected dict: {item[:50]}...")
+             continue # Skip for now or handle if we know format
+             
+        if not isinstance(item, dict):
+            print(f"[WARNING] Item {i} is not a dict: {type(item)}")
+            continue
+
         q = item.get('question') or item.get('query')
         
         # Handle various answer formats
         a = item.get('answer') or item.get('answers') or item.get('correct_answer')
+        
+        # HotpotQA specific: 'answer' is string, but some datasets use list
         if isinstance(a, list) and len(a) > 0:
-            a = a[0] # Take first valid answer
+            a = a[0] 
         
         if q and a:
             self.data.append((q, a))
