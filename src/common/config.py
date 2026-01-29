@@ -63,6 +63,10 @@ class CommonArguments(TrainingArguments):
     data_path: Optional[str] = field(default=None, metadata={'help': 'Data path'})
     trajs_path: Optional[str] = field(default=None, metadata={'help': 'Trajs path'})
     num_shards: Optional[int] = field(default=None, metadata={'help': 'Total number of shards'})
+    
+    # Mapping Files
+    qid_to_idx_path: Optional[str] = field(default=None, metadata={'help': 'Path to qid_to_idx.json mapping file'})
+    adv_data_path: Optional[str] = field(default=None, metadata={'help': 'Path to adversarial data file (containing target/correct answers)'})
     shard_id: Optional[int] = field(default=None, metadata={'help': 'Current shard id (0-indexed)'})
 
     def __post_init__(self):

@@ -409,30 +409,63 @@ if __name__ == "__main__":
     # qid_to_idx.json is in results/adv_targeted_results/ ?
     # Let's verify paths.
     
-    qid_to_idx_path = os.path.join(base_dir, 'results', 'adv_targeted_results', 'qid_to_idx.json')
-    hotpotqa_path = os.path.join(base_dir, 'results', 'adv_targeted_results', 'hotpotqa.json')
+    # 1. Load Mappings and Adversarial Data
+    base_dir = root_dir 
     
-    if not os.path.exists(qid_to_idx_path):
-        print(f"[WARNING] Mapping file not found: {qid_to_idx_path}")
-        # Create dummy or fail?
-        # The script relies on this for QID to Index mapping.
-        # If running from scratch, maybe we don't need it if env.reset handles idx?
-        # ReAct env.reset(idx=idx) uses index into dataset.
-        # If hotpotqa100.json is used, index 0..99 corresponds to qids in that file.
-        # If mapping is missing, we might default to 0..99 enumeration if we load data_path.
-        
-    try:
-        with open(qid_to_idx_path, 'r') as f:
+    # Priority 1: Use provided arguments
+    qid_map_path = args.qid_to_idx_path
+    adv_path = args.adv_data_path
+    
+    # Priority 2: Fallback to defaults or data_path
+    if not adv_path and args.data_path and "hotpotqa100" in args.data_path:
+        # Assuming data_path contains the full info
+        adv_path = args.data_path
+        print(f"Using data_path as adv_data source: {adv_path}")
+
+    # Load Adversarial Data (Target Answers)
+    adv_data = {}
+    if adv_path and os.path.exists(adv_path):
+        try:
+            with open(adv_path, 'r') as f:
+                adv_data = json.load(f)
+            print(f"Loaded adv_data from {adv_path}: {len(adv_data)} items")
+        except Exception as e:
+            print(f"[ERROR] Failed to load adv_data from {adv_path}: {e}")
+    else:
+        # Try legacy path
+        legacy_path = os.path.join(base_dir, 'results', 'adv_targeted_results', 'hotpotqa.json')
+        if os.path.exists(legacy_path):
+             print(f"Loading legacy adv_data from {legacy_path}")
+             with open(legacy_path, 'r') as f:
+                adv_data = json.load(f)
+
+    # Load QID Mapping
+    qid_to_idx = {}
+    if qid_map_path and os.path.exists(qid_map_path):
+        with open(qid_map_path, 'r') as f:
             qid_to_idx = json.load(f)
-        with open(hotpotqa_path, 'r') as f:
-            adv_data = json.load(f)
-            
+    elif os.path.exists(os.path.join(base_dir, 'results', 'adv_targeted_results', 'qid_to_idx.json')):
+        with open(os.path.join(base_dir, 'results', 'adv_targeted_results', 'qid_to_idx.json'), 'r') as f:
+            qid_to_idx = json.load(f)
+    
+    # Construct Execution Items
+    # content of items should be list of (qid, idx)
+    if qid_to_idx:
         items = list(qid_to_idx.items())
-    except Exception as e:
-        print(f"[WARNING] Failed to load qid mappings: {e}")
-        print("Fallback: Using simple 0-99 range for dry run or testing.")
-        items = [(str(i), i) for i in range(100)]
-        adv_data = defaultdict(dict) # Empty dict returning dict
+    elif adv_data:
+        # If no explicit mapping, generate from adv_data keys
+        # Assuming adv_data is Dict[QID, Content]
+        print("No qid_to_idx mapping found. Generating from adv_data keys (order preserved).")
+        items = []
+        for i, qid in enumerate(adv_data.keys()):
+            items.append((qid, i))
+    else:
+        print("[WARNING] No data found! Running empty loop.")
+        items = []
+        # Support fallback for simple data_path without adv info?
+        # If wrappers loaded data successfully, env has data.
+        # But we need qid and targets for metrics.
+
     
     
     if args.dry_run:

@@ -7,6 +7,7 @@ MODEL_PATH="/home/work/Redteaming/data1/REDTEAMING_LLM/cache/hub/models--Qwen--Q
 INDEX_DIR="datasets/hotpotqa/e5_index"
 CORPUS_PATH="datasets/hotpotqa/corpus.jsonl"
 DATA_PATH="datasets/hotpotqa/hotpotqa100.json"
+QID_TO_IDX_PATH="datasets/hotpotqa/qid_to_idx.json"
 ATTACKER_API_BASE="http://localhost:8001/v1"
 
 export CUDA_VISIBLE_DEVICES=$GPU_ID
@@ -18,6 +19,7 @@ python models/react/attack_react.py \
     --index_dir $INDEX_DIR \
     --corpus_path $CORPUS_PATH \
     --data_path $DATA_PATH \
+    --qid_to_idx_path $QID_TO_IDX_PATH \
     --output_dir results/trajectory_results/react \
     --attacker_api_base $ATTACKER_API_BASE \
     --attacker_model_name $MODEL_PATH

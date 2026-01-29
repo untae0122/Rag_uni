@@ -26,3 +26,5 @@ python models/webthinker/scripts/run_web_thinker_for_attack.py \
     --poisoned_index_dir $POISONED_INDEX_DIR \
     --poisoned_corpus_path $POISONED_CORPUS_PATH \
     --top_k 5
+    --qid_to_idx_path $QID_TO_IDX_PATH \
+    --adv_data_path $ADV_DATA_PATH \

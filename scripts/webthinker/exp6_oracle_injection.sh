@@ -24,5 +24,7 @@ python models/webthinker/scripts/run_web_thinker_for_attack.py \
     --index_dir $INDEX_DIR \
     --corpus_path $CORPUS_PATH \
     --top_k 5 \
+    --qid_to_idx_path $QID_TO_IDX_PATH \
+    --adv_data_path $ADV_DATA_PATH \
     --attacker_api_base $ATTACKER_API_BASE \
     --attacker_model_name $ATTACKER_MODEL_NAME

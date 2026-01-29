@@ -414,20 +414,47 @@ def main():
         logger.info('max_path_length < 1, setting decode_strategy to greedy')
         args.decode_strategy = 'greedy'
     
-    with open('../results/adv_targeted_results/hotpotqa.json', 'r') as f:
-        adv_data_raw = json.load(f)
+    # Load Adversarial Data
+    adv_path = args.adv_data_path
+    if not adv_path:
+        # Check standard location relative to results
+        adv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../results', 'adv_targeted_results', 'hotpotqa.json'))
+
+    if os.path.exists(adv_path):
+        with open(adv_path, 'r') as f:
+            adv_data_raw = json.load(f)
+        logger.info(f"Loaded adv_data from {adv_path}")
+    else:
+         logger.warning(f"Adv data not found at {adv_path}. Using empty dict.")
+         adv_data_raw = {}
     
     # Transform adv_data to match the expected format 'ex'
     adv_data = []
-    for qid, item in adv_data_raw.items():
+    # If qid_to_idx_path is provided, use it to filter/order
+    qid_map_path = args.qid_to_idx_path
+    if not qid_map_path:
+        qid_map_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../results', 'adv_targeted_results', 'qid_to_idx.json'))
+        
+    ordered_qids = []
+    if os.path.exists(qid_map_path):
+        with open(qid_map_path, 'r') as f:
+             qid_to_idx = json.load(f)
+        # Sort by index
+        ordered_qids = [k for k, v in sorted(qid_to_idx.items(), key=lambda item: item[1])]
+    else:
+        ordered_qids = list(adv_data_raw.keys())
+
+    for qid in ordered_qids:
+        if qid not in adv_data_raw: continue
+        item = adv_data_raw[qid]
         adv_data.append({
             'query': item['question'],
             'id': item['id'],
             'answers': [item['correct answer']],
             'incorrect_answer': item['incorrect answer'],
-            'adv_texts': item['adv_texts'],
+            'adv_texts': item.get('adv_texts', []),
             'task_desc': 'answer multi-hop questions',
-            'context_doc_ids': [], # We'll handle this later for poisoning
+            'context_doc_ids': [], 
             'context_doc_scores': []
         }) 
 

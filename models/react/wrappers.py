@@ -97,7 +97,12 @@ class GeneralDatasetWrapper(gym.Wrapper):
 
     # Standardize data format: list of (question, answer)
     self.data = []
-    self.data = []
+    
+    # If data_raw is a dict (e.g. HotpotQA Map), convert to list of values
+    if isinstance(self.data_raw, dict):
+        print(f"Detected dictionary format (Map). Converting to list of {len(self.data_raw)} items.")
+        self.data_raw = list(self.data_raw.values())
+        
     for i, item in enumerate(self.data_raw):
         if isinstance(item, str):
              # Handle case where item is just a string (ID or Question?)

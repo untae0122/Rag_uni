@@ -7,6 +7,7 @@ MODEL_PATH="/home/work/Redteaming/data1/REDTEAMING_LLM/cache/hub/models--Qwen--Q
 INDEX_DIR="datasets/hotpotqa/e5_index"
 CORPUS_PATH="datasets/hotpotqa/corpus.jsonl"
 DATA_PATH="datasets/hotpotqa/hotpotqa100.json"
+QID_TO_IDX_PATH="datasets/hotpotqa/qid_to_idx.json"
 # Exp 7 uses a pre-generated poisoned corpus based on surrogate model prediction
 POISONED_INDEX_DIR="datasets/hotpotqa/poisoned_index_surrogate"
 POISONED_CORPUS_PATH="datasets/hotpotqa/poisoned_corpus_surrogate.jsonl"
@@ -22,4 +23,5 @@ python models/react/attack_react.py \
     --poisoned_index_dir $POISONED_INDEX_DIR \
     --poisoned_corpus_path $POISONED_CORPUS_PATH \
     --data_path $DATA_PATH \
+    --qid_to_idx_path $QID_TO_IDX_PATH \
     --output_dir results/trajectory_results/react
