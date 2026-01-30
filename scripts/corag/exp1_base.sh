@@ -8,7 +8,7 @@ CORPUS_PATH="datasets/hotpotqa/corpus.jsonl"
 QID_TO_IDX_PATH="datasets/hotpotqa/qid_to_idx.json"
 ADV_DATA_PATH="datasets/hotpotqa/hotpotqa100.json"
 VLLM_HOST="localhost"
-VLLM_PORT="8000"
+VLLM_PORT="8005"
 
 # Note: Corag Agent requires VLLM server running at $VLLM_HOST:$VLLM_PORT
 # And you must have launched it with the Agent Model.
