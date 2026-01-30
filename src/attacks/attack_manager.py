@@ -192,7 +192,8 @@ corpus5: ...
                 response = self.adv_client.chat.completions.create(
                     model=self.adv_model_name,
                     messages=messages,
-                    temperature=0.7,
+                    temperature=self.adv_sampling_params.temperature if self.adv_sampling_params else 0.7,
+                    top_p=self.adv_sampling_params.top_p if self.adv_sampling_params else 1.0,
                     max_tokens=self.adv_sampling_params.max_tokens if self.adv_sampling_params else 1024
                 )
                 generated_text = response.choices[0].message.content
