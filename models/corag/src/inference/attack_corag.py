@@ -113,7 +113,7 @@ if args.attack_mode in [AttackMode.DYNAMIC_RETRIEVAL.value, AttackMode.ORACLE_IN
             api_base=args.attacker_api_base,
             api_key=args.attacker_api_key,
             model_name=args.attacker_model_name if args.attacker_model_name else "Qwen/Qwen2.5-32B-Instruct",
-            adv_sampling_params=SamplingParams(temperature=0.7, max_tokens=1024)
+            adv_sampling_params=SamplingParams(temperature=0.7, top_p=0.9, max_tokens=16384)
         )
     else:
         # Fallback to Local Loading (Original Logic)
