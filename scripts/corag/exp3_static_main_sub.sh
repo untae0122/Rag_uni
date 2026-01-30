@@ -10,7 +10,7 @@ ADV_DATA_PATH="datasets/hotpotqa/hotpotqa100_x3.json"
 POISONED_INDEX_DIR="datasets/hotpotqa/poisoned_corpus_main_sub_corag"
 POISONED_CORPUS_PATH="datasets/hotpotqa/poisoned_corpus_main_sub_corag.jsonl"
 VLLM_HOST="localhost"
-VLLM_PORT="8000"
+VLLM_PORT="8005"
 
 export CUDA_VISIBLE_DEVICES=$GPU_ID
 export VLLM_HOST=$VLLM_HOST

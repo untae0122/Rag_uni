@@ -7,10 +7,10 @@ INDEX_DIR="datasets/hotpotqa/e5_index"
 CORPUS_PATH="datasets/hotpotqa/corpus.jsonl"
 QID_TO_IDX_PATH="datasets/hotpotqa/qid_to_idx.json"
 ADV_DATA_PATH="datasets/hotpotqa/hotpotqa100.json"
-POISONED_INDEX_DIR="datasets/hotpotqa/poisoned_index_exp4"
-POISONED_CORPUS_PATH="datasets/hotpotqa/poisoned_corpus_exp4.jsonl"
+POISONED_INDEX_DIR="datasets/hotpotqa/poisoned_corpus_sub_sub_qwen_corag"
+POISONED_CORPUS_PATH="datasets/hotpotqa/poisoned_corpus_sub_sub_qwen_corag.jsonl"
 VLLM_HOST="localhost"
-VLLM_PORT="8000"
+VLLM_PORT="8005"
 
 export CUDA_VISIBLE_DEVICES=$GPU_ID
 export VLLM_HOST=$VLLM_HOST
