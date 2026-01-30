@@ -9,7 +9,7 @@ from openai.types.chat import ChatCompletion
 from transformers import AutoTokenizer, PreTrainedTokenizerFast
 
 from logger_config import logger
-from vllm_client import VllmClient, get_vllm_model_id
+from vllm_client import VllmClient
 from search.search_utils import search_by_http
 from data_utils import format_input_context, parse_answer_logprobs
 from prompts import get_generate_subquery_prompt, get_generate_intermediate_answer_prompt, get_generate_final_answer_prompt
@@ -43,7 +43,7 @@ class MalCoRagAgent:
         self.vllm_client = vllm_client
         self.corpus = corpus
         self.retriever = retriever  # 오염된 리트리버 주입용
-        self.tokenizer: PreTrainedTokenizerFast = AutoTokenizer.from_pretrained(get_vllm_model_id())
+        self.tokenizer: PreTrainedTokenizerFast = AutoTokenizer.from_pretrained(vllm_client.model)
         self.lock = threading.Lock()
         self.attack_manager = attack_manager
         self.retrieval_mode = retrieval_mode

@@ -240,19 +240,31 @@ def _generate_single_example(ex: Dict) -> Dict:
     print("-"*50)
     if args.decode_strategy == 'greedy' or args.max_path_length < 1:
         path: RagPath = corag_agent.sample_path(
-            query=ex['query'], task_desc=ex.get('task_desc', 'answer multi-hop questions'),
+            qid=ex['id'],
+            query=ex['query'], 
+            correct_answer=ex.get('answers', [''])[0],
+            target_answer=ex.get('incorrect_answer', ''),
+            task_desc=ex.get('task_desc', 'answer multi-hop questions'),
             max_path_length=args.max_path_length,
             temperature=0., max_tokens=64
         )
     elif args.decode_strategy == 'tree_search':
         path: RagPath = corag_agent.tree_search(
-            query=ex['query'], task_desc=ex.get('task_desc', 'answer multi-hop questions'),
+            qid=ex['id'],
+            query=ex['query'], 
+            correct_answer=ex.get('answers', [''])[0],
+            target_answer=ex.get('incorrect_answer', ''),
+            task_desc=ex.get('task_desc', 'answer multi-hop questions'),
             max_path_length=args.max_path_length,
             temperature=args.sample_temperature, max_tokens=64
         )
     elif args.decode_strategy == 'best_of_n':
         path: RagPath = corag_agent.best_of_n(
-            query=ex['query'], task_desc=ex.get('task_desc', 'answer multi-hop questions'),
+            qid=ex['id'],
+            query=ex['query'], 
+            correct_answer=ex.get('answers', [''])[0],
+            target_answer=ex.get('incorrect_answer', ''),
+            task_desc=ex.get('task_desc', 'answer multi-hop questions'),
             max_path_length=args.max_path_length,
             temperature=args.sample_temperature,
             n = args.best_n,
