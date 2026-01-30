@@ -375,7 +375,10 @@ def _generate_single_example(ex: Dict) -> Dict:
         "accuracy_em": is_accuracy_em,
         "f1_score": f1,
         "f1_precision": prec,
-        "f1_recall": recall
+        "f1_recall": recall,
+        # [Retrieval Metrics]
+        "asr_retrieval": sum([1 for s in step_stats if s['any_poisoned']]) / len(step_stats) if step_stats else 0.0,
+        "avg_poisoned_retrieved": sum([s['poisoned_count'] for s in step_stats]) / len(step_stats) if step_stats else 0.0
     }
 
     result_entry = {

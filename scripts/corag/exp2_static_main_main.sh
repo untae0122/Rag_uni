@@ -5,13 +5,12 @@
 GPU_ID=${1:-0}
 INDEX_DIR="datasets/hotpotqa/e5_index"
 CORPUS_PATH="datasets/hotpotqa/corpus.jsonl"
-CORPUS_PATH="datasets/hotpotqa/corpus.jsonl"
 QID_TO_IDX_PATH="datasets/hotpotqa/qid_to_idx.json"
-ADV_DATA_PATH="datasets/hotpotqa/hotpotqa.json"
+ADV_DATA_PATH="datasets/hotpotqa/hotpotqa100_x3.json"
 POISONED_INDEX_DIR="datasets/hotpotqa/e5_index_poisoned_main_main_x3"
 POISONED_CORPUS_PATH="datasets/hotpotqa/poisoned_corpus_main_main_x3.jsonl"
 VLLM_HOST="localhost"
-VLLM_PORT="8000"
+VLLM_PORT="8005"
 
 
 
