@@ -251,7 +251,13 @@ def webthink(idx=None, adv_item=None, prompt=None, to_print=True):
             thought = thought_action.strip().split('\n')[0]
             action = llm(prompt + f"Thought {i}: {thought}\nAction {i}:", stop=[f"\n"]).strip()
         
-        action = action.split('\n')[0].strip()
+        action = llm(prompt, stop=['\nObservation']).strip()
+        
+        # Initialize step variables for logging
+        step_generated_corpus = []
+        step_generated_subanswer = ""
+        is_poisoned_step = False
+        poisoned_flags_step = []
         if ']' in action:
             action = action[:action.find(']')+1]
         
@@ -281,6 +287,10 @@ def webthink(idx=None, adv_item=None, prompt=None, to_print=True):
                     correct_answer=correct_ans
                 )
                 
+                # Store generated content for logging
+                step_generated_corpus = corpuses
+                step_generated_subanswer = adv_subanswer if adv_subanswer else target_ans
+                    
                 if corpuses:
                     if args.attack_mode == AttackMode.DYNAMIC_RETRIEVAL.value:
                         # Dynamic/Soft Oracle: Add to index, then search normally
@@ -368,7 +378,9 @@ def webthink(idx=None, adv_item=None, prompt=None, to_print=True):
             'total_count': step_total_count,
             'is_search': is_search_action,
             'poisoned_flags': step_poisoned_flags,
-            'retrieved_results': info.get('retrieved_results', [])
+            'retrieved_results': info.get('retrieved_results', []),
+            'generated_adv_corpus': step_generated_corpus,
+            'generated_adv_subanswer': step_generated_subanswer
         })
         
         step_str = f"Thought {i}: {thought}\nAction {i}: {action}\nObservation {i}: {obs}\n"

@@ -977,7 +977,9 @@ async def process_single_sequence(
                 'is_search': True,
                 'poisoned_flags': poisoned_flags,
                 'any_poisoned': any(poisoned_flags) if poisoned_flags else False,
-                'web_explorer_output': analysis  # Full deep web explorer output (하위 호환성)
+                'web_explorer_output': analysis,  # Full deep web explorer output (하위 호환성)
+                'generated_adv_corpus': corpuses if corpuses else [],
+                'generated_adv_subanswer': adv_subanswer if adv_subanswer else None
             })
             
             seq['executed_search_queries'].add(search_query)
@@ -1481,6 +1483,7 @@ async def main_async():
                 'metrics': metrics,
                 'steps': steps,
                 'adv_texts': item.get('adv_texts', []),
+                'generated_adv_texts': [s.get('generated_adv_corpus', []) for s in steps],
                 # Preserving extra WebThinker specific fields if needed, 
                 # but standardizing on 'steps' and 'metrics' is key.
                 "web_explorer": seq.get('web_explorer', [])

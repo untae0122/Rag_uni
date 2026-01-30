@@ -64,7 +64,8 @@ class MalCoRagAgent:
         past_documents: List[List[str]] = []
         past_poisoned_flags: List[List[bool]] = []
         past_retriever_results: List[List] = []
-        # past_adv_subanswers: List[List[str]] = [] # Not critically needed for RagPath standard
+        past_adv_corpuses: List[List[str]] = []
+        past_adv_subanswers: List[str] = []
         assert len(past_subqueries) == len(past_subanswers) == len(past_doc_ids) == len(past_documents) == len(past_poisoned_flags) == len(past_retriever_results)
 
         subquery_temp: float = temperature
@@ -165,6 +166,8 @@ class MalCoRagAgent:
             past_documents.append(documents)
             past_poisoned_flags.append(poisoned_flags)
             past_retriever_results.append(retriever_results)
+            past_adv_corpuses.append(corpuses)
+            past_adv_subanswers.append(adv_subanswer if adv_subanswer else target_answer)
 
         
         return RagPath(
@@ -175,6 +178,8 @@ class MalCoRagAgent:
             past_documents=past_documents,
             past_poisoned_flags=past_poisoned_flags,
             past_retriever_results=past_retriever_results,
+            past_adv_corpuses=past_adv_corpuses,
+            past_adv_subanswers=past_adv_subanswers,
         )
 
     def generate_final_answer(

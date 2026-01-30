@@ -113,7 +113,7 @@ if args.attack_mode in [AttackMode.DYNAMIC_RETRIEVAL.value, AttackMode.ORACLE_IN
             api_base=args.attacker_api_base,
             api_key=args.attacker_api_key,
             model_name=args.attacker_model_name if args.attacker_model_name else "Qwen/Qwen2.5-32B-Instruct",
-            adv_sampling_params=SamplingParams(temperature=0.7, top_p=0.9, max_tokens=16384)
+            adv_sampling_params=SamplingParams(temperature=0.7, top_p=0.9, max_tokens=4096)
         )
     else:
         # Fallback to Local Loading (Original Logic)
@@ -320,6 +320,10 @@ def _generate_single_example(ex: Dict) -> Dict:
     any_poisoned = False
     poisoned_retrieval_count = 0
     
+    # Check if we have generated adv data
+    generated_adv_corpuses = getattr(path, 'past_adv_corpuses', []) or []
+    generated_adv_subanswers = getattr(path, 'past_adv_subanswers', []) or []
+    
     # Step별 독성 문서 검색 통계 수집
     step_stats = []
     for step_idx, flags in enumerate(path.past_poisoned_flags):
@@ -334,6 +338,19 @@ def _generate_single_example(ex: Dict) -> Dict:
             'total_count': step_total_count
         })
         
+        # Get generated content for this step if available
+        step_gen_corpus = generated_adv_corpuses[step_idx] if step_idx < len(generated_adv_corpuses) else []
+        step_gen_adv_ans = generated_adv_subanswers[step_idx] if step_idx < len(generated_adv_subanswers) else ""
+
+        step_stats.append({
+            'step': step_idx + 1,
+            'any_poisoned': step_any_poisoned,
+            'poisoned_count': step_poisoned_count,
+            'total_count': step_total_count,
+            'generated_adv_corpus': step_gen_corpus,
+            'generated_adv_subanswer': step_gen_adv_ans
+        })
+        
         any_poisoned = any_poisoned or step_any_poisoned
         poisoned_retrieval_count += step_poisoned_count
 
@@ -346,7 +363,9 @@ def _generate_single_example(ex: Dict) -> Dict:
     ex_with_path['correct_answer'] = correct_ans
     ex_with_path['any_poisoned_retrieved'] = any_poisoned
     ex_with_path['poisoned_retrieval_count'] = poisoned_retrieval_count
+    ex_with_path['poisoned_retrieval_count'] = poisoned_retrieval_count
     ex_with_path['step_stats'] = step_stats 
+    ex_with_path['generated_adv_texts'] = generated_adv_corpuses  # Top-level field for easy access 
     
     # Standardize and log using ResultLogger
     
