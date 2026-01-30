@@ -123,9 +123,17 @@ def initialize_globals():
     )
     
     env = E5WikiEnv(retriever, k=5)
-    if args.data_path:
-        print(f"Using generic data path: {args.data_path}")
-        env = wrappers.GeneralDatasetWrapper(env, args.data_path)
+    
+    # [Unified] Data Path Logic
+    # Priority: args.data_path -> args.adv_data_path -> Default HotpotQA
+    env_data_path = args.data_path
+    if not env_data_path and args.adv_data_path:
+        print(f"Using adv_data_path for environment: {args.adv_data_path}")
+        env_data_path = args.adv_data_path
+
+    if env_data_path:
+        print(f"Using generic data path: {env_data_path}")
+        env = wrappers.GeneralDatasetWrapper(env, env_data_path)
     else:
         print("Using default HotpotQA (dev) wrapper")
         env = wrappers.HotPotQAWrapper(env, split="dev")
@@ -302,8 +310,18 @@ def webthink(idx=None, adv_item=None, prompt=None, to_print=True):
 
         # Default execution if no oracle override
         if obs is None:
-            obs, r, done, info = step(env, action[0].lower() + action[1:])
-            obs = obs.replace('\\n', '')
+            if not action:
+                print(f"Empty action generated. Skipping step {i}.")
+                obs = "Invalid Action: Empty action generated."
+                n_badcalls += 1
+            else:
+                try:
+                    obs, r, done, info = step(env, action[0].lower() + action[1:])
+                    obs = obs.replace('\\n', '')
+                except IndexError:
+                    print(f"IndexError processing action: '{action}'. Skipping.")
+                    obs = "Invalid Action: IndexError."
+                    n_badcalls += 1
         
         # --- End Attack Hook (placeholder, will complete in next step) ---
         

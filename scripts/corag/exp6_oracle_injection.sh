@@ -5,7 +5,7 @@
 GPU_ID=${1:-0}
 INDEX_DIR="datasets/hotpotqa/e5_index"
 CORPUS_PATH="datasets/hotpotqa/corpus.jsonl"
-DATA_PATH="datasets/hotpotqa/hotpotqa100.json"
+CORPUS_PATH="datasets/hotpotqa/corpus.jsonl"
 QID_TO_IDX_PATH="datasets/hotpotqa/qid_to_idx.json"
 ADV_DATA_PATH="datasets/hotpotqa/hotpotqa.json"
 VLLM_HOST="localhost"

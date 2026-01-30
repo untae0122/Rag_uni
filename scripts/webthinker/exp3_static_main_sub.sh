@@ -7,6 +7,10 @@ INDEX_DIR="datasets/hotpotqa/e5_index"
 CORPUS_PATH="datasets/hotpotqa/corpus.jsonl"
 POISONED_INDEX_DIR="datasets/hotpotqa/poisoned_index_exp3"
 POISONED_CORPUS_PATH="datasets/hotpotqa/poisoned_corpus_exp3.jsonl"
+# [Unified] Define ADV_DATA_PATH
+ADV_DATA_PATH="datasets/hotpotqa/hotpotqa100_x3.json"
+QID_TO_IDX_PATH="datasets/hotpotqa/qid_to_idx.json"
+
 AGENT_API_BASE="http://localhost:8000/v1"
 AGENT_API_KEY="EMPTY"
 AGENT_MODEL_NAME="webthinker" 
@@ -25,6 +29,6 @@ python models/webthinker/scripts/run_web_thinker_for_attack.py \
     --corpus_path $CORPUS_PATH \
     --poisoned_index_dir $POISONED_INDEX_DIR \
     --poisoned_corpus_path $POISONED_CORPUS_PATH \
-    --top_k 5
+    --top_k 5 \
     --qid_to_idx_path $QID_TO_IDX_PATH \
-    --adv_data_path $ADV_DATA_PATH \
+    --adv_data_path $ADV_DATA_PATH

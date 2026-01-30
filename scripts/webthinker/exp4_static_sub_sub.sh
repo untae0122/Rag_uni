@@ -10,6 +10,9 @@ POISONED_CORPUS_PATH="datasets/hotpotqa/poisoned_corpus_exp4.jsonl"
 AGENT_API_BASE="http://localhost:8000/v1"
 AGENT_API_KEY="EMPTY"
 AGENT_MODEL_NAME="webthinker" 
+# [Unified] Define ADV_DATA_PATH
+ADV_DATA_PATH="datasets/hotpotqa/hotpotqa100.json"
+QID_TO_IDX_PATH="datasets/hotpotqa/qid_to_idx.json" 
 
 export CUDA_VISIBLE_DEVICES=$GPU_ID
 
