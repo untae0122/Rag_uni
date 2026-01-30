@@ -60,6 +60,9 @@ class ResultLogger:
         em_count = 0
         f1_sum = 0.0
         
+        asr_retrieval_sum = 0.0
+        avg_poisoned_sum = 0.0
+        
         for res in self.results:
             # Metrics might be at top level or inside 'metrics' dict
             metrics = res.get('metrics', res) # Fallback to top level
@@ -70,11 +73,16 @@ class ResultLogger:
                 em_count += 1
             f1_sum += metrics.get('f1_score', 0.0)
             
+            asr_retrieval_sum += metrics.get('asr_retrieval', 0.0)
+            avg_poisoned_sum += metrics.get('avg_poisoned_retrieved', 0.0)
+            
         return {
             'total_count': total,
             'asr': asr_count / total,
             'accuracy_em': em_count / total,
             'accuracy_f1': f1_sum / total,
+            'asr_retrieval': asr_retrieval_sum / total,
+            'avg_poisoned_retrieved': avg_poisoned_sum / total,
             'success_count_asr': asr_count,
             'success_count_em': em_count
         }
