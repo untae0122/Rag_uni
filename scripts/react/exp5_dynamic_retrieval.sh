@@ -9,6 +9,7 @@ CORPUS_PATH="datasets/hotpotqa/corpus.jsonl"
 DATA_PATH="datasets/hotpotqa/hotpotqa100.json"
 QID_TO_IDX_PATH="datasets/hotpotqa/qid_to_idx.json"
 ATTACKER_API_BASE="http://localhost:8001/v1"
+ATTACKER_MODEL_NAME="Qwen/Qwen2.5-32B-Instruct"
 
 export CUDA_VISIBLE_DEVICES=$GPU_ID
 
@@ -22,4 +23,4 @@ python models/react/attack_react.py \
     --qid_to_idx_path $QID_TO_IDX_PATH \
     --output_dir results/trajectory_results/react \
     --attacker_api_base $ATTACKER_API_BASE \
-    --attacker_model_name $MODEL_PATH
+    --attacker_model_name $ATTACKER_MODEL_NAME
