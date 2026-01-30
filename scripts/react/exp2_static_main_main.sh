@@ -6,10 +6,10 @@ GPU_ID=${1:-0}
 MODEL_PATH="/home/work/Redteaming/data1/REDTEAMING_LLM/cache/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe"
 INDEX_DIR="datasets/hotpotqa/e5_index"
 CORPUS_PATH="datasets/hotpotqa/corpus.jsonl"
-DATA_PATH="datasets/hotpotqa/hotpotqa100.json"
+DATA_PATH="datasets/hotpotqa/hotpotqa100_x3.json"
 QID_TO_IDX_PATH="datasets/hotpotqa/qid_to_idx.json"
-POISONED_INDEX_DIR="datasets/hotpotqa/poisoned_index_exp2"
-POISONED_CORPUS_PATH="datasets/hotpotqa/poisoned_corpus_exp2.jsonl"
+POISONED_INDEX_DIR="datasets/hotpotqa/e5_index_poisoned_main_main_x3"
+POISONED_CORPUS_PATH="datasets/hotpotqa/poisoned_corpus_main_main_x3.jsonl"
 
 export CUDA_VISIBLE_DEVICES=$GPU_ID
 
