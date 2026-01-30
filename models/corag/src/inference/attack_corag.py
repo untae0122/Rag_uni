@@ -31,8 +31,7 @@ from logger_config import logger
 from vllm_client import VllmClient, get_vllm_model_id
 from utils import save_json_to_file, AtomicCounter
 from src.common.result_logger import ResultLogger
-from src.e5_retriever import E5_Retriever
-from src.e5_retriever import E5_Retriever
+from src.retriever.e5_retriever import E5_Retriever
 from agent import CoRagAgent, RagPath
 from agent.mal_corag_agent import MalCoRagAgent
 from vllm import SamplingParams
