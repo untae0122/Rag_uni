@@ -50,6 +50,32 @@ class CommonArguments(TrainingArguments):
     attacker_api_base: Optional[str] = field(default=None, metadata={'help': 'vLLM API Base URL for Attacker (e.g. http://localhost:8001/v1)'})
     attacker_api_key: Optional[str] = field(default="EMPTY", metadata={'help': 'API Key for Attacker vLLM'})
     attacker_model_name: Optional[str] = field(default=None, metadata={'help': 'Model name to use in API call'})
+    
+    # --- WebThinker / Aux Config ---
+    aux_model_name: Optional[str] = field(default=None, metadata={'help': 'Auxiliary model name'})
+    aux_api_base_url: Optional[str] = field(default=None, metadata={'help': 'Auxiliary model API Base URL'})
+    aux_api_key: Optional[str] = field(default="EMPTY", metadata={'help': 'Auxiliary model API Key'})
+    tokenizer_path: Optional[str] = field(default=None, metadata={'help': 'Path to main tokenizer'})
+    aux_tokenizer_path: Optional[str] = field(default=None, metadata={'help': 'Path to auxiliary tokenizer'})
+    api_base_url: Optional[str] = field(default=None, metadata={'help': 'Main model API Base URL'})
+    api_key: Optional[str] = field(default="EMPTY", metadata={'help': 'Main model API Key'})
+    model_name: Optional[str] = field(default=None, metadata={'help': 'Main model name'})
+    search_engine: str = field(default='e5', metadata={'help': 'Search engine to use (e5, bing, etc.)'})
+    
+    # --- Generation Params ---
+    temperature: float = field(default=0.7, metadata={"help": "temperature"})
+    top_p: float = field(default=0.9, metadata={"help": "top_p"})
+    top_k_sampling: int = field(default=-1, metadata={"help": "top_k (generation)"})
+    min_p: float = field(default=0.0, metadata={"help": "min_p"})
+    repetition_penalty: float = field(default=1.0, metadata={"help": "repetition_penalty"})
+    max_tokens: int = field(default=2048, metadata={"help": "max_tokens for generation"})
+    
+    # --- Others ---
+    dataset_name: str = field(default="hotpotqa", metadata={'help': 'Dataset name'})
+    split: str = field(default="test", metadata={'help': 'Dataset split'})
+    keep_links: bool = field(default=False, metadata={'help': 'Keep links in cache (deprecated?)'})
+    seed: Optional[int] = field(default=None, metadata={'help': 'Random seed'})
+    single_question: Optional[str] = field(default=None, metadata={'help': 'Single question to run'})
 
     # --- Legacy/Corag Specific (kept for compatibility) ---
     eval_task: str = field(default='hotpotqa', metadata={'help': 'evaluation task'})
