@@ -481,6 +481,7 @@ async def process_single_sequence(
             else:
                 try:
                     if args.search_engine == "e5":
+                        print(f"[Very Warning]Search query {search_query} found in search cache")
                         if retriever:
                             results = retriever.search(search_query, k=args.top_k)
                         else:
