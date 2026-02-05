@@ -579,6 +579,12 @@ async def process_single_sequence(
         seq['original_prompt'] = formatted_prompt # Updates
         seq['prompt'] = formatted_prompt + clean_response
         
+        seq['prompt'] = formatted_prompt + clean_response
+        
+    # Extract final answer for metric calculation
+    # Using 'qa' mode as default for HotPotQA style
+    seq['answer'] = extract_answer_fn(seq['output'], mode='qa')
+    
     return seq
 
 

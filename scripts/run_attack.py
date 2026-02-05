@@ -18,7 +18,9 @@ if project_root not in sys.path:
 from models.react import ReActAgent
 from models.webthinker import WebThinkerAgent
 from models.corag import CoRagModel
+from models.corag import CoRagModel
 from src.retrieval import indexer
+from src.evaluation.metrics import f1_score, exact_match_score
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Unified Attack Runner for RAG Experiments")
@@ -151,9 +153,10 @@ def main():
         # But WebThinker code expects 'prompt' in input dict in process_single_sequence!
         # ReActAgent.run_batch expects list of questions.
         
-        # Let's align on 'question' key.
+        # Let's align on 'question' key and preserve 'answer' as 'ground_truth_answer'
         new_item = item.copy()
         new_item['question'] = q
+        new_item['ground_truth_answer'] = item.get('answer', '') # Preserve GS
         standardized_data.append(new_item)
         
     data = standardized_data
@@ -214,11 +217,54 @@ def main():
         agent = CoRagModel(args)
         results = agent.run_batch(data)
 
+    # Calculate Metrics and Update Results with Correct Scores
+    print(f"Calculating Metrics over {len(results)} samples...")
+    ems = []
+    f1s = []
+    
+    for item in results:
+        # Determine prediction and ground truth keys
+        # ReAct: 'answer' (from info dict) - output from model
+        # WebThinker: likely 'answer' or 'pred'
+        # CoRag: 'pred'
+        
+        # Heuristic to find prediction
+        prediction = item.get('answer', item.get('pred', item.get('prediction', '')))
+        
+        # Ground Truth preserved in 'ground_truth_answer'
+        ground_truth = item.get('ground_truth_answer', item.get('golden_answer', ''))
+        
+        if prediction is None:
+             prediction = ""
+             
+        # Calculate Metrics
+        em = exact_match_score(prediction, ground_truth)
+        f1, prec, recall = f1_score(prediction, ground_truth)
+        
+        # Update item with correct metrics (overwrite potentially wrong wrapper metrics)
+        item['em'] = check_accuracy(prediction, ground_truth) # Use check_accuracy for consistency if imported, or just exact_match_score result
+        # actually check_accuracy calls exact_match_score.
+        # But 'em' key in wrapper was boolean or int? Wrapper: int(score).
+        item['em'] = int(em)
+        item['f1'] = f1
+        item['reward'] = int(em) # usually reward is EM
+        
+        ems.append(int(em))
+        f1s.append(f1)
+        
+    avg_em = np.mean(ems) if ems else 0.0
+    avg_f1 = np.mean(f1s) if f1s else 0.0
+    
+    print(f"Results Summary:")
+    print(f"Samples: {len(results)}")
+    print(f"Average EM: {avg_em:.4f}")
+    print(f"Average F1: {avg_f1:.4f}")
+
     # Save Results
     print(f"Saving results to {args.output_path}")
     with open(args.output_path, 'w', encoding='utf-8') as f:
         json.dump(results, f, indent=4, ensure_ascii=False)
-    
+
     print("Done.")
 
 if __name__ == "__main__":
