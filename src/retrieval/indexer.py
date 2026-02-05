@@ -30,7 +30,10 @@ def derive_index_path(corpus_path: str, model_name: str) -> str:
             # It's a path, take the last directory name
             model_safe_name = os.path.basename(os.path.normpath(model_name))
     else:
-            model_safe_name = model_name.replace('/', '_')
+            if 'e5' in model_name.lower():
+                model_safe_name = 'e5'
+            else:
+                model_safe_name = model_name.replace('/', '_')
             
     index_name = f"{model_safe_name}_index_{corpus_name}"
     return os.path.join(corpus_dir, index_name)
