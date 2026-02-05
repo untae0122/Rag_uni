@@ -1,0 +1,39 @@
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+.Python
+env/
+venv/
+.env
+
+# Jupyter
+.ipynb_checkpoints
+
+# Logs
+*.log
+logs/
+
+# Project Specific
+results/
+tmp/
+brain/
+artifacts/
+
+# Large Files & Data
+datasets/
+*_index_*
+*.pt
+*.bin
+*.jsonl
+*.json
+!requirements.txt
+!scripts/*.json
+!models/prompts/*.json
+
+# IDEs
+.vscode/
+.idea/

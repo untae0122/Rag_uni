@@ -272,16 +272,16 @@ async def generate_deep_web_explorer(
                                 results = retriever.search(new_query, k=args.top_k)
                             else:
                                 results = []
-                        else: # Bing/Serper not supported in this unified version for now
-                            results = {} 
+                        # else: # Bing/Serper not supported in this unified version for now
+                        #    results = {} 
                         search_cache[new_query] = results
                     except Exception as e:
                         results = {}
 
                 if args.search_engine == "e5":
                     relevant_info = extract_relevant_info_e5(results, top_k=args.top_k)
-                else:
-                    relevant_info = []
+                # else:
+                #    relevant_info = []
 
                 formatted_documents = format_search_results(relevant_info)
                 
@@ -600,11 +600,13 @@ class WebThinkerAgent:
         # Initialize Retriever
         if args.search_engine == "e5":
             print(f"Initializing Retriever from {args.index_dir}")
+            retrieval_model_name = getattr(args, 'retrieval_model_name', 'intfloat/e5-large-v2') 
             self.retriever = E5_Retriever(
-                index_dir=args.index_dir,
                 corpus_path=args.corpus_path,
-                poisoned_index_dir=args.poisoned_index_dir,
+                index_dir=args.index_dir,
                 poisoned_corpus_path=args.poisoned_corpus_path,
+                poisoned_index_dir=args.poisoned_index_dir,
+                model_name=retrieval_model_name,
                 device="cuda" if torch.cuda.is_available() else "cpu"
             )
         else:

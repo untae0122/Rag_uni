@@ -32,6 +32,7 @@ def parse_args():
 
     # Retrieval Arguments
     parser.add_argument("--search_engine", type=str, default="e5", choices=["e5", "bing", "serper"], help="Search engine to use")
+    parser.add_argument("--retrieval_model_name", type=str, default="intfloat/e5-large-v2", help="Path or name of retrieval model (E5)")
     parser.add_argument("--index_dir", type=str, default=None, help="Path to E5 index directory")
     parser.add_argument("--corpus_path", type=str, default=None, help="Path to corpus JSONL")
     parser.add_argument("--poisoned_index_dir", type=str, default=None, help="Path to poisoned E5 index")
