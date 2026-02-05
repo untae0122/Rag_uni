@@ -5,9 +5,9 @@ import torch
 import transformers
 from vllm import LLM, SamplingParams
 from .envs import wrappers, wikienv, e5_env
-from ..retrieval import E5_Retriever
+from src.retrieval import E5_Retriever
 import argparse
-from ..utils.common import setup_seeds
+from src.utils.common import setup_seeds
 import tqdm
 
 class ReActAgent:

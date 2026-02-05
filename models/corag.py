@@ -22,7 +22,7 @@ from vllm_client import VllmClient
 from utils import save_json_to_file
 
 # Import Unified components
-from ..retrieval import E5_Retriever
+from src.retrieval import E5_Retriever
 
 class CoRagModel:
     def __init__(self, args):

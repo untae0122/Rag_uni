@@ -27,7 +27,7 @@ from .webthinker_utils.prompts import (
     get_task_instruction_openqa, 
 )
 from .webthinker_utils.evaluate import extract_answer_fn
-from ..retrieval import E5_Retriever
+from src.retrieval import E5_Retriever
 # from search.bing_search import ... (Omitted as we focus on E5)
 
 # Define special tokens
