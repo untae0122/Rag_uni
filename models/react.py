@@ -47,7 +47,7 @@ Here are some examples.
             download_dir=getattr(args, 'cache_dir', None),
             trust_remote_code=True,
             gpu_memory_utilization=gpu_util,
-            max_model_len=50000,
+            max_model_len=25000,
             dtype="half"
         )
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(llm_path, trust_remote_code=True)

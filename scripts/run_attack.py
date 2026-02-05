@@ -18,6 +18,7 @@ if project_root not in sys.path:
 from models.react import ReActAgent
 from models.webthinker import WebThinkerAgent
 from models.corag import CoRagModel
+from src.retrieval import indexer
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Unified Attack Runner for RAG Experiments")
@@ -101,8 +102,37 @@ def main():
     set_seed(args.seed)
     
     # Setup Output Directory
+    # Setup Output Directory
     os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
     
+    # [NEW] Handle Auto-Indexing Logic Here
+    if args.search_engine == "e5":
+        # 1. Clean Index
+        if args.corpus_path:
+            # If index_dir not provided, derive it
+            if not args.index_dir:
+                args.index_dir = indexer.derive_index_path(args.corpus_path, args.retrieval_model_name)
+                print(f"Auto-derived index_dir: {args.index_dir}")
+            
+            # Build index if not exists
+            indexer.build_index(
+                corpus_path=args.corpus_path, 
+                index_dir=args.index_dir, 
+                model_name=args.retrieval_model_name
+            )
+        
+        # 2. Poisoned Index (if applicable)
+        if args.poisoned_corpus_path:
+            if not args.poisoned_index_dir:
+                args.poisoned_index_dir = indexer.derive_index_path(args.poisoned_corpus_path, args.retrieval_model_name)
+                print(f"Auto-derived poisoned_index_dir: {args.poisoned_index_dir}")
+                
+            indexer.build_index(
+                corpus_path=args.poisoned_corpus_path, 
+                index_dir=args.poisoned_index_dir, 
+                model_name=args.retrieval_model_name
+            )
+
     # Load Data
     print(f"Loading data from {args.data_path}")
     data = load_data(args.data_path, args.max_samples if not args.dry_run else 2)

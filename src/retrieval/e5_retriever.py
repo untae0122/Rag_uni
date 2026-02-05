@@ -18,7 +18,7 @@ class E5_Retriever:
     def __init__(
         self,
         corpus_path: str,
-        index_dir: Optional[str] = None,
+        index_dir: str,
         poisoned_corpus_path: Optional[str] = None,
         poisoned_index_dir: Optional[str] = None,
         model_name: str = 'intfloat/e5-large-v2',
@@ -32,35 +32,34 @@ class E5_Retriever:
         print(f"Initializing E5_Retriever with model: {model_name}")
         self.encoder = SimpleEncoder(model_name, device, batch_size=batch_size)
 
-        # 1. Resolve Index Paths and Auto-Index if needed
-        if corpus_path:
-            resolved_index_dir = index_dir or self._derive_index_path(corpus_path, model_name)
-            self._ensure_index_exists(corpus_path, resolved_index_dir)
+        # 1. Load Data (Clean)
+        # Note: index_dir must be provided and valid now (managed by running script)
+        self.corpus = []
+        
+        if corpus_path and index_dir:
             clean_corpus = self._load_corpus(corpus_path)
-            clean_embeddings = self._load_embeddings_from_dir(resolved_index_dir)
-        else:
-            clean_corpus = []
-            clean_embeddings = None
-        
-        # [CRITICAL] Truncate corpus if index is smaller (indexing might be incomplete)
-        if clean_embeddings is not None and len(clean_corpus) > clean_embeddings.shape[0]:
-            print(f"Warning: Clean corpus ({len(clean_corpus)}) is larger than clean index ({clean_embeddings.shape[0]}). Truncating corpus to match.")
-            clean_corpus = clean_corpus[:clean_embeddings.shape[0]]
+            clean_embeddings = self._load_embeddings_from_dir(index_dir)
             
-        self.num_clean_docs = len(clean_corpus)
-        
-        if poisoned_corpus_path:
-            resolved_poison_index_dir = poisoned_index_dir or self._derive_index_path(poisoned_corpus_path, model_name)
-            self._ensure_index_exists(poisoned_corpus_path, resolved_poison_index_dir)
-            poison_corpus = self._load_corpus(poisoned_corpus_path)
-            poison_embeddings = self._load_embeddings_from_dir(resolved_poison_index_dir)
+            # [CRITICAL] Truncate corpus if index is smaller
+            if clean_embeddings is not None and len(clean_corpus) > clean_embeddings.shape[0]:
+                 print(f"Warning: Clean corpus ({len(clean_corpus)}) is larger than clean index ({clean_embeddings.shape[0]}). Truncating corpus.")
+                 clean_corpus = clean_corpus[:clean_embeddings.shape[0]]
+                 
+            self.num_clean_docs = len(clean_corpus)
+            self.corpus.extend(clean_corpus)
         else:
-            poison_corpus = []
+            clean_embeddings = None
+            self.num_clean_docs = 0
+
+        # 2. Poisoned Data
+        if poisoned_corpus_path and poisoned_index_dir:
+            poison_corpus = self._load_corpus(poisoned_corpus_path)
+            poison_embeddings = self._load_embeddings_from_dir(poisoned_index_dir)
+            self.corpus.extend(poison_corpus)
+        else:
             poison_embeddings = None
 
-        # 2. Merge Corpora
-        self.corpus = clean_corpus + poison_corpus
-        print(f"Total Corpus: {len(self.corpus)} (Clean: {len(clean_corpus)}, Poisoned: {len(poison_corpus)})")
+        print(f"Total Corpus: {len(self.corpus)} (Clean: {self.num_clean_docs})")
 
         # 3. Merge Embeddings
         all_embs = []
@@ -72,59 +71,10 @@ class E5_Retriever:
         if all_embs:
             self.all_embeddings = torch.cat(all_embs, dim=0).to(self.device)
             print(f"Total Index loaded. Shape: {self.all_embeddings.shape}")
-            
-            # Final sanity check
-            # if len(self.corpus) != self.all_embeddings.shape[0]:
-                 # raise ValueError(f"CRITICAL: Corpus size ({len(self.corpus)}) does not match Index size ({self.all_embeddings.shape[0]})!")
         else:
             self.all_embeddings = None
             print("Warning: No embeddings loaded.")
 
-    def _derive_index_path(self, corpus_path: str, model_name: str) -> str:
-        """
-        Derive index directory path from corpus path and model name.
-        Format: {corpus_dir}/{model_safe_name}_index_{corpus_filename_no_ext}
-        """
-        corpus_dir = os.path.dirname(os.path.abspath(corpus_path))
-        corpus_name = os.path.splitext(os.path.basename(corpus_path))[0]
-        
-        # Safe model name (handle paths)
-        if os.path.isdir(model_name):
-             # It's a path, take the last directory name
-             model_safe_name = os.path.basename(os.path.normpath(model_name))
-        else:
-             model_safe_name = model_name.replace('/', '_')
-             
-        index_name = f"{model_safe_name}_index_{corpus_name}"
-        return os.path.join(corpus_dir, index_name)
-
-    def _ensure_index_exists(self, corpus_path: str, index_dir: str):
-        """
-        Check if index exists, otherwise create it.
-        """
-        if not os.path.exists(index_dir) or not glob.glob(os.path.join(index_dir, '*.pt')):
-            print(f"Index not found at {index_dir}. Creating index...")
-            self._create_index(corpus_path, index_dir)
-        else:
-            print(f"Index found at {index_dir}. Using existing index.")
-
-    def _create_index(self, corpus_path: str, index_dir: str):
-        os.makedirs(index_dir, exist_ok=True)
-        corpus = self._load_corpus(corpus_path)
-        if not corpus:
-            print("Empty corpus, skipping indexing.")
-            return
-
-        print(f"Encoding {len(corpus)} documents...")
-        all_embeddings = self.encoder.encode_corpus(corpus)
-        
-        # Save as a single shard for simplicity or multiple if large?
-        # Let's save as single shard for now for simplicity, or chunk it.
-        # Original code used shards? _load_embeddings_from_dir supports shards.
-        # We save as 'embedding-shard-0.pt'
-        save_path = os.path.join(index_dir, 'embedding-shard-0.pt')
-        torch.save(all_embeddings.cpu(), save_path)
-        print(f"Saved index to {save_path}")
 
     def _load_corpus(self, corpus_path: str) -> List[Dict]:
         corpus = []
