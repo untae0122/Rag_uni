@@ -133,20 +133,12 @@ def main():
     if args.model == "react":
         # ReAct Agent (Runs vLLM locally)
         agent = ReActAgent(
-            model_path=args.model_path,
-            index_dir=args.index_dir,
-            corpus_path=args.corpus_path,
-            poisoned_index_dir=args.poisoned_index_dir,
-            poisoned_corpus_path=args.poisoned_corpus_path
+            args,
+            model_name=args.model_path
         )
-        # ReAct run_batch takes list of questions/tasks
-        # We need to adapt data to ReAct input format if necessary
-        # ReActAgent.run_batch seems to take just list of strings? No, let's check.
-        # models/react.py: run_batch(self, tasks: List[str])
-        
-        tasks = [d['question'] for d in data]
+        # ReAct run_batch takes list of dicts/questions
         results = agent.run_batch(
-            tasks=tasks, 
+            inputs=data, 
             max_new_tokens=args.max_new_tokens
         )
         # Results are list of dicts/strings? ReAct returns list of dicts with 'history', 'answer'.

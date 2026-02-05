@@ -87,15 +87,21 @@ Here are some examples.
                 attempts += 1
         raise Exception("Failed to step environment after 10 attempts")
 
-    def webthink(self, idx=None, prompt_template=None, to_print=True):
+    def webthink(self, idx=None, question=None, prompt_template=None, to_print=True):
         if prompt_template is None:
             prompt_template = self.webthink_prompt
             
-        question = self.env.reset(idx=idx)
+        env_question = self.env.reset(idx=idx)
+        
+        if question is not None:
+            actual_question = question
+        else:
+            actual_question = env_question
+
         if to_print:
-            print(idx, question)
+            print(idx, actual_question)
             
-        prompt = prompt_template + question + "\n"
+        prompt = prompt_template + actual_question + "\n"
         
         n_calls, n_badcalls = 0, 0
         step_stats = []
@@ -205,18 +211,26 @@ Here are some examples.
         
         return r, info
 
-    def run_batch(self, count=None, dry_run=False):
+    def run_batch(self, inputs=None, count=None, dry_run=False, max_new_tokens=512):
         """
-        Run the agent on 'count' examples from the environment.
-        If count is None, run all.
+        Run the agent on 'inputs' (list of dicts with 'question') or internal dataset if inputs is None.
         """
+        if inputs is not None:
+             print(f"Running ReAct Agent for {len(inputs)} provided inputs...")
+             results = []
+             for idx, item in tqdm.tqdm(enumerate(inputs), total=len(inputs)):
+                 q = item.get('question', item.get('query', ''))
+                 r, info = self.webthink(idx=idx, question=q, to_print=True)
+                 results.append(info)
+             return results
+
         total = len(self.env)
         if count is None:
             count = total
         if dry_run:
             count = 1
             
-        print(f"Running ReAct Agent for {count} examples...")
+        print(f"Running ReAct Agent for {count} examples from internal dataset...")
         
         results = []
         for idx in tqdm.tqdm(range(count)):
