@@ -1,0 +1,21 @@
+
+# Unified Requirements for RAG Experiments
+# Note: ReAct originally used older versions (vllm==0.2.7, transformers==4.36.2)
+# We prioritize newer versions from CoRag/WebThinker for compatibility.
+
+accelerate>=1.0.0
+aiohttp>=3.13.2
+numpy>=1.26.4
+pandas>=2.3.3
+torch>=2.4.0
+tqdm>=4.67.1
+transformers>=4.46.3
+vllm>=0.6.0
+openai>=1.55.3
+# Additional dependencies from CoRag/WebThinker
+fastapi
+uvicorn
+logzero
+sentencepiece
+networkx
+beautifulsoup4
