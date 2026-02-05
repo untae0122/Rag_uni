@@ -72,7 +72,7 @@ Here are some examples.
         env = e5_env.E5WikiEnv(self.retriever, k=5)
         # Assuming split is 'dev' for now as per attack_react.py
         env = wrappers.HotPotQAWrapper(env, split="dev")
-        env = wrappers.LoggingWrapper(env, folder=args.output_dir)
+        env = wrappers.LoggingWrapper(env, folder=os.path.dirname(args.output_path))
         self.env = env
         
     def step(self, env, action):
