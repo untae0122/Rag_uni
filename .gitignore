@@ -32,7 +32,7 @@ datasets/
 *.json
 !requirements.txt
 !scripts/*.json
-!models/prompts/*.json
+!models/react_utils/prompts/*.json
 
 # IDEs
 .vscode/

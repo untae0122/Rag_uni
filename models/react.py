@@ -4,7 +4,7 @@ import json
 import torch
 import transformers
 from vllm import LLM, SamplingParams
-from .envs import wrappers, wikienv, e5_env
+from .react_utils.envs import wrappers, wikienv, e5_env
 from src.retrieval import E5_Retriever
 import argparse
 from src.utils.common import setup_seeds
@@ -17,7 +17,7 @@ class ReActAgent:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         
         # Load Prompts
-        prompt_file = os.path.join(os.path.dirname(__file__), "prompts/prompts_naive.json")
+        prompt_file = os.path.join(os.path.dirname(__file__), "react_utils/prompts/prompts_naive.json")
         with open(prompt_file, 'r') as f:
             self.prompts = json.load(f)
         # Use subquery prompt if specified, else generic? 
@@ -59,14 +59,12 @@ Here are some examples.
 
         # Initialize Retriever
         print(f"Initializing Retriever from {args.index_dir}")
-        # Initialize Retriever
-        print(f"Initializing Retriever from {args.index_dir}")
         self.retriever = E5_Retriever(
             corpus_path=args.corpus_path,
             index_dir=args.index_dir,
             poisoned_corpus_path=args.poisoned_corpus_path,
             poisoned_index_dir=args.poisoned_index_dir,
-            model_name='intfloat/e5-large-v2', # or a specific arg if we add it
+            model_name=args.retrieval_model_name, # or a specific arg if we add it
             device=self.device
         )
 

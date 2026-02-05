@@ -8,7 +8,8 @@ import string
 from collections import Counter
 
 # UPDATED: Point to datasets/hotpotqa relative to this file (rag_unified/models/envs/)
-DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../datasets/hotpotqa"))
+# UPDATED: Point to datasets/hotpotqa relative to this file (rag_unified/models/react_utils/envs/)
+DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../datasets/hotpotqa"))
 
 HOTPOTQA_SPLIT_FILE = {
   "train": "hotpot_train_v1.1_simplified.json",
