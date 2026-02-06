@@ -133,7 +133,7 @@ class HotPotQAWrapper(gym.Wrapper):
     reward = self.get_reward(info)
     if done:
       obs = f"Episode finished, reward = {reward}\n"
-      info.update({"gt_answer": self.data[self.data_idx][1], "question_idx": self.data_idx})
+      # info.update({"gt_answer": self.data[self.data_idx][1], "question_idx": self.data_idx})
       info.update(self.get_metrics(info))
     return obs, reward, done, info
   

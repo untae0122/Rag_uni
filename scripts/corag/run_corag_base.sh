@@ -4,8 +4,8 @@
 # Usage: ./scripts/run_corag.sh
 
 # Paths
-DATA_PATH="./datasets/hotpotqa/test.jsonl"
-CORPUS_PATH="./datasets/hotpotqa/corpus.jsonl"
+DATA_PATH="./datasets/hotpotqa/hotpotqa_poisonedrag.json"
+CORPUS_PATH="./datasets/hotpotqa_corpus/hotpotqa_corpus.jsonl"
 RETRIEVAL_MODEL="intfloat/e5-large-v2" # Can be local path
 
 # VLLM Config

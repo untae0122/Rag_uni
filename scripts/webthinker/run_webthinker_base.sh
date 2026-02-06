@@ -8,7 +8,7 @@
 trap 'kill $(jobs -p)' EXIT
 
 # Paths
-DATA_PATH="./datasets/hotpotqa/hotpotqa.json"
+DATA_PATH="./datasets/hotpotqa/hotpotqa_poisonedrag.json"
 CORPUS_PATH="./datasets/hotpotqa_corpus/hotpotqa_corpus.jsonl"
 RETRIEVAL_MODEL="/home/work/Redteaming/data1/VIDEO_HALLUCINATION/hf_cache/hub/models--intfloat--e5-large-v2/snapshots/f169b11e22de13617baa190a028a32f3493550b6" # Can be local path
 
