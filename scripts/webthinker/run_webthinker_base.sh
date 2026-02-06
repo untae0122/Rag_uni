@@ -9,7 +9,6 @@ trap 'kill $(jobs -p)' EXIT
 
 # Paths
 DATA_PATH="./datasets/hotpotqa/hotpotqa.json"
-OUTPUT_PATH="./results/webthinker/test_results.json"
 CORPUS_PATH="./datasets/hotpotqa_corpus/hotpotqa_corpus.jsonl"
 RETRIEVAL_MODEL="/home/work/Redteaming/data1/VIDEO_HALLUCINATION/hf_cache/hub/models--intfloat--e5-large-v2/snapshots/f169b11e22de13617baa190a028a32f3493550b6" # Can be local path
 
@@ -25,6 +24,8 @@ AUX_MODEL_PATH="/home/work/Redteaming/data1/VIDEO_HALLUCINATION/hf_cache/hub/mod
 AUX_MODEL_NAME="Qwen2.5-7B-Instruct"
 AUX_PORT=8001
 AUX_GPU="1"
+
+OUTPUT_PATH="./results/webthinker/base_results.json"
 
 echo "========================================================"
 echo "Starting vLLM Orchestration for WebThinker"

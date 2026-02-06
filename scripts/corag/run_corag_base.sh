@@ -5,7 +5,6 @@
 
 # Paths
 DATA_PATH="./datasets/hotpotqa/test.jsonl"
-OUTPUT_PATH="./results/corag/results.json"
 CORPUS_PATH="./datasets/hotpotqa/corpus.jsonl"
 RETRIEVAL_MODEL="intfloat/e5-large-v2" # Can be local path
 
@@ -13,6 +12,8 @@ RETRIEVAL_MODEL="intfloat/e5-large-v2" # Can be local path
 VLLM_HOST="localhost"
 VLLM_PORT=8000
 MODEL_NAME="meta-llama/Llama-3.3-70B-Instruct" # Model served by VLLM
+
+OUTPUT_PATH="./results/corag/base_results.json"
 
 # Run
 python3 scripts/run_attack.py \
