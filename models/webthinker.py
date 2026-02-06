@@ -528,17 +528,55 @@ async def process_single_sequence(
             
             main_search_docs = [{k: v for k, v in d.items() if k != 'snippet'} for d in relevant_info if isinstance(d, dict)]
             
+            # Calculate poisoned flags for main determination
+            poisoned_flags = [d.get('is_poisoned', False) for d in relevant_info if isinstance(d, dict)]
+            
+            # 1. Main Search Step
+            _step = len(seq['step_stats'])
             seq['step_stats'].append({
-                 'step': len(seq['step_stats']),
+                 'step': _step,
                  'thought': thought_before_search,
                  'search_query': search_query,
+                 'search_intent': search_intent,
                  'action': f"Search[{search_query}]",
-                 'observation': '[DEBUG: WebExplorer Interactions]',
+                 'observation': extracted_info,
                  'search_documents': main_search_docs,
-                 'extracted_info': extracted_info,
+                 'extracted_info': None,
                  'is_search': True,
-                 'source': 'web_explorer',
-                 'explorer_steps': explorer_steps
+                 'source': 'main',
+                 'poisoned_flags': poisoned_flags,
+                 'any_poisoned': any(poisoned_flags)
+            })
+            
+            # 2. Web Explorer Steps
+            for es in explorer_steps:
+                 if es.get("type") != "search":
+                     continue
+                 _step = len(seq['step_stats'])
+                 seq['step_stats'].append({
+                    'step': _step,
+                    'thought': es.get('thought', ''),
+                    'search_query': es.get('search_query', ''),
+                    'action': f"Search[{es.get('search_query', '')}]",
+                    'observation': es.get('observation', ''),
+                    'search_documents': es.get('search_documents', []),
+                    'extracted_info': None,
+                    'is_search': True,
+                    'source': 'web_explorer',
+                 })
+
+            # 3. Conclusion Step
+            _step = len(seq['step_stats'])
+            seq['step_stats'].append({
+                'step': _step,
+                'thought': extracted_info,
+                'search_query': None,
+                'action': None,
+                'observation': None,
+                'search_documents': None,
+                'extracted_info': extracted_info,
+                'is_search': False,
+                'source': 'web_explorer'
             })
             
             total_tokens += len(append_text.split())
