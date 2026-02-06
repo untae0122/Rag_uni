@@ -242,7 +242,9 @@ def main():
         f1, prec, recall = f1_score(prediction, ground_truth)
         
         # Update item with correct metrics (overwrite potentially wrong wrapper metrics)
-        item['em'] = check_accuracy(prediction, ground_truth) # Use check_accuracy for consistency if imported, or just exact_match_score result
+        # Update item with correct metrics (overwrite potentially wrong wrapper metrics)
+        # item['em'] = check_accuracy(prediction, ground_truth)  <-- Caused NameError
+        # Since we already calculated em above, just use it.
         # actually check_accuracy calls exact_match_score.
         # But 'em' key in wrapper was boolean or int? Wrapper: int(score).
         item['em'] = int(em)
