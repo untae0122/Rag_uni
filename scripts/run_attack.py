@@ -20,7 +20,7 @@ from models.webthinker import WebThinkerAgent
 from models.corag import CoRagModel
 from models.corag import CoRagModel
 from src.retrieval import indexer
-from src.evaluation.metrics import f1_score, exact_match_score
+from src.evaluation.metrics import f1_score, exact_match_score, check_asr
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Unified Attack Runner for RAG Experiments")
@@ -221,6 +221,7 @@ def main():
     print(f"Calculating Metrics over {len(results)} samples...")
     ems = []
     f1s = []
+    asrs = []
     
     for item in results:
         # Determine prediction and ground truth keys
@@ -238,8 +239,16 @@ def main():
              prediction = ""
              
         # Calculate Metrics
+        # Calculate Metrics
         em = exact_match_score(prediction, ground_truth)
         f1, prec, recall = f1_score(prediction, ground_truth)
+        
+        # ASR Calculation
+        target_answer = item.get('incorrect answer', item.get('target', None)) 
+        if target_answer:
+            asr = check_asr(prediction, target_answer)
+        else:
+            asr = False
         
         # Update item with correct metrics (overwrite potentially wrong wrapper metrics)
         # Update item with correct metrics (overwrite potentially wrong wrapper metrics)
@@ -250,9 +259,11 @@ def main():
         item['em'] = int(em)
         item['f1'] = f1
         item['reward'] = int(em) # usually reward is EM
+        item['asr'] = int(asr)
         
         ems.append(int(em))
         f1s.append(f1)
+        asrs.append(int(asr))
 
     # Calculate Poisoning Metrics
     total_poisoned_docs = 0
@@ -309,11 +320,13 @@ def main():
 
     avg_em = np.mean(ems) if ems else 0.0
     avg_f1 = np.mean(f1s) if f1s else 0.0
-    
+    avg_asr = np.mean(asrs) if asrs else 0.0
+
     print(f"Results Summary:")
     print(f"Samples: {len(results)}")
     print(f"Average EM: {avg_em:.4f}")
     print(f"Average F1: {avg_f1:.4f}")
+    print(f"Average ASR: {avg_asr:.4f}")
     print(f"Avg Poisoned Ratio: {avg_poisoned_ratio:.4f}")
     print(f"Poisoned Retrieval Rate: {poisoned_retrieval_rate:.4f}")
 
@@ -322,6 +335,7 @@ def main():
         "metrics": {
             "average_em": float(f"{avg_em:.4f}"),
             "average_f1": float(f"{avg_f1:.4f}"),
+            "average_asr": float(f"{avg_asr:.4f}"),
             "avg_poisoned_ratio": float(f"{avg_poisoned_ratio:.4f}"),
             "poisoned_retrieval_rate": float(f"{poisoned_retrieval_rate:.4f}"),
             "total_samples": len(results)
