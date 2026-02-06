@@ -206,7 +206,12 @@ def main():
             q = d['question']
             d['prompt'] = f"{instruction}\nQuestion: {q}\n"
 
-        agent = WebThinkerAgent(args)
+        from transformers import AutoTokenizer
+        
+        tokenizer = AutoTokenizer.from_pretrained(args.model_path, trust_remote_code=True)
+        aux_tokenizer = AutoTokenizer.from_pretrained(args.aux_model_path, trust_remote_code=True)
+        
+        agent = WebThinkerAgent(args, tokenizer=tokenizer, aux_tokenizer=aux_tokenizer)
         # WebThinkerAgent.run_batch is async
         results = asyncio.run(agent.run_batch(data))
         # results is list of dicts (seq)
