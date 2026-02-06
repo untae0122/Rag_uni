@@ -76,9 +76,11 @@ export CUDA_VISIBLE_DEVICES="$MAIN_GPU"
 python3 scripts/run_attack.py \
     --model webthinker \
     --api_base_url "http://localhost:$MAIN_PORT/v1" \
+    --model_path "$MAIN_MODEL_PATH" \
     --model_name "$MAIN_MODEL_NAME" \
     --aux_api_base_url "http://localhost:$AUX_PORT/v1" \
     --aux_model_name "$AUX_MODEL_NAME" \
+    --aux_model_path "$AUX_MODEL_PATH" \
     --data_path "$DATA_PATH" \
     --output_path "$OUTPUT_PATH" \
     --corpus_path "$CORPUS_PATH" \
