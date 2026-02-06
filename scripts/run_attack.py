@@ -42,7 +42,7 @@ def parse_args():
     parser.add_argument("--poisoned_corpus_path", type=str, default=None, help="Path to poisoned corpus")
 
     # Model Specific - ReAct (vLLM In-Process)
-    parser.add_argument("--model_path", type=str, default=None, help="Path to model weights for ReAct (vLLM)")
+    parser.add_argument("--model_path", type=str, default=None, help="Path to model weights (ReAct) or for Tokenizer (WebThinker)")
     parser.add_argument("--max_new_tokens", type=int, default=512, help="Max new tokens for generation")
     
     # Model Specific - WebThinker/CoRag (Server Based)
@@ -52,6 +52,7 @@ def parse_args():
     parser.add_argument("--aux_model_name", type=str, default="default", help="Auxiliary model name for WebThinker")
     parser.add_argument("--aux_api_key", type=str, default="EMPTY", help="Auxiliary API Key")
     parser.add_argument("--aux_api_base_url", type=str, default="http://localhost:8000/v1", help="Auxiliary Base URL")
+    parser.add_argument("--aux_model_path", type=str, default=None, help="Path to aux model weights (for tokenizer)")
     
     parser.add_argument("--temperature", type=float, default=0.7, help="Sampling temperature")
     parser.add_argument("--top_p", type=float, default=0.9, help="Sampling top_p")
