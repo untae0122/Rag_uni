@@ -236,6 +236,10 @@ async def generate_deep_web_explorer(
             original_prompt = formatted_prompt
             prompt = formatted_prompt
         
+        if not response:
+            print(f"[Warning] Empty response received. Breaking loop to prevent infinite hang.")
+            break
+            
         clean_response = response.replace('</think>\n','')
         output += clean_response
         prompt += clean_response
@@ -477,11 +481,12 @@ async def process_single_sequence(
 
             results = {}
             if search_query in search_cache:
+                print(f"[Very Warning]Search query {search_query} found in search cache")
                 results = search_cache[search_query]
             else:
                 try:
                     if args.search_engine == "e5":
-                        print(f"[Very Warning]Search query {search_query} found in search cache")
+                        
                         if retriever:
                             results = retriever.search(search_query, k=args.top_k)
                         else:
@@ -608,6 +613,10 @@ async def process_single_sequence(
             tokenizer=tokenizer,
             aux_tokenizer=aux_tokenizer
         )
+        
+        if not response:
+            print(f"[Warning] Empty response received in process_single_sequence. Breaking loop.")
+            break
         
         clean_response = response.replace('</think>\n', '')
         tokens_this_response = len(response.split())
