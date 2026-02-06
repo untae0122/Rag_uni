@@ -595,13 +595,65 @@ async def process_single_sequence(
             seq['executed_search_queries'].add(search_query)
 
         else:
-             # Limit reached
-             append_text = f"\n\n{BEGIN_SEARCH_RESULT} You have reached the maximum number of searches. Please answer based on your current knowledge. {END_SEARCH_RESULT}\n\n"
-             seq['prompt'] += append_text
-             seq['output'] += append_text
-             seq['history'].append(append_text)
-             total_tokens += len(append_text.split())
-             # Force finish next loop?
+            append_text = f"\n\n{BEGIN_SEARCH_RESULT}You have reached the search limit. You are not allowed to search.{END_SEARCH_RESULT}\n\n"
+            seq['prompt'] += append_text
+            seq['output'] += append_text
+            seq['history'].append(append_text)
+            
+            # Extract thought before final answer
+            last_thought = clean_response.split(BEGIN_SEARCH_RESULT)[0].strip() if BEGIN_SEARCH_RESULT in clean_response else clean_response.strip()
+            
+            _, final_response = await generate_response(
+                client=client,
+                prompt=seq['prompt'],
+                semaphore=semaphore,
+                temperature=args.temperature,
+                top_p=args.top_p,
+                max_tokens=args.max_tokens,
+                repetition_penalty=1.1,
+                top_k=args.top_k_sampling,
+                min_p=args.min_p,
+                model_name=args.model_name,
+                generate_mode="completion",
+                bad_words=[f"{END_SEARCH_RESULT}\n\n{tokenizer.eos_token}", f"{END_SEARCH_QUERY}{tokenizer.eos_token}"],
+                tokenizer=tokenizer,
+                aux_tokenizer=aux_tokenizer
+            )
+            
+            clean_final_response = final_response.replace('</think>\n', '')
+            seq['output'] += clean_final_response
+            seq['history'].append(clean_final_response)
+            
+            limit_obs = 'You have reached the search limit. You are not allowed to search.'
+            # Step 1: main thought that led to (rejected) search -> observation = limit message
+            _step = len(seq['step_stats'])
+            seq['step_stats'].append({
+                'step': _step,
+                'thought': last_thought,
+                'search_query': None,
+                'action': 'Finish[]',
+                'observation': limit_obs,
+                'search_documents': None,
+                'extracted_info': None,
+                'is_search': False,
+                'source': 'main',
+            })
+            # Step 2: main's response after seeing limit (final answer)
+            _step = len(seq['step_stats'])
+            seq['step_stats'].append({
+                'step': _step,
+                'thought': clean_final_response,
+                'search_query': None,
+                'action': 'Finish[]',
+                'observation': limit_obs,
+                'search_documents': None,
+                'extracted_info': None,
+                'is_search': False,
+                'source': 'main',
+            })
+            
+            seq['finished'] = True
+            break
         
         # Next generation
         formatted_prompt, response = await generate_response(
