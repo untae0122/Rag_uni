@@ -153,10 +153,9 @@ def main():
         # But WebThinker code expects 'prompt' in input dict in process_single_sequence!
         # ReActAgent.run_batch expects list of questions.
         
-        # Let's align on 'question' key and preserve 'answer' as 'ground_truth_answer'
+        # Let's align on 'question' key 
         new_item = item.copy()
         new_item['question'] = q
-        new_item['ground_truth_answer'] = item.get('answer', '') # Preserve GS
         standardized_data.append(new_item)
         
     data = standardized_data
@@ -232,8 +231,8 @@ def main():
         # Heuristic to find prediction
         prediction = item.get('answer', item.get('pred', item.get('prediction', '')))
         
-        # Ground Truth preserved in 'ground_truth_answer'
-        ground_truth = item.get('ground_truth_answer', item.get('golden_answer', ''))
+        # Ground Truth from 'correct answer' as requested
+        ground_truth = item.get('correct answer', item.get('answer', ''))
         
         if prediction is None:
              prediction = ""
@@ -251,8 +250,7 @@ def main():
             asr = False
         
         # Update item with correct metrics (overwrite potentially wrong wrapper metrics)
-        # Update item with correct metrics (overwrite potentially wrong wrapper metrics)
-        # item['em'] = check_accuracy(prediction, ground_truth)  <-- Caused NameError
+        item['answer'] = prediction
         # Since we already calculated em above, just use it.
         # actually check_accuracy calls exact_match_score.
         # But 'em' key in wrapper was boolean or int? Wrapper: int(score).
