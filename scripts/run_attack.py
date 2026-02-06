@@ -315,7 +315,7 @@ def main():
         if sample_has_poison:
             samples_with_poison += 1
 
-    avg_poisoned_ratio = (total_poisoned_docs / total_docs) if total_docs > 0 else 0.0
+    avg_poisoned_count = (total_poisoned_docs / len(results)) if len(results) > 0 else 0.0
     poisoned_retrieval_rate = (samples_with_poison / len(results)) if len(results) > 0 else 0.0
 
     avg_em = np.mean(ems) if ems else 0.0
@@ -327,7 +327,7 @@ def main():
     print(f"Average EM: {avg_em:.4f}")
     print(f"Average F1: {avg_f1:.4f}")
     print(f"Average ASR: {avg_asr:.4f}")
-    print(f"Avg Poisoned Ratio: {avg_poisoned_ratio:.4f}")
+    print(f"Avg Poisoned Count per Sample: {avg_poisoned_count:.4f}")
     print(f"Poisoned Retrieval Rate: {poisoned_retrieval_rate:.4f}")
 
     # Construct final output with summary
@@ -336,7 +336,7 @@ def main():
             "average_em": float(f"{avg_em:.4f}"),
             "average_f1": float(f"{avg_f1:.4f}"),
             "average_asr": float(f"{avg_asr:.4f}"),
-            "avg_poisoned_ratio": float(f"{avg_poisoned_ratio:.4f}"),
+            "avg_poisoned_count": float(f"{avg_poisoned_count:.4f}"),
             "poisoned_retrieval_rate": float(f"{poisoned_retrieval_rate:.4f}"),
             "total_samples": len(results)
         },
