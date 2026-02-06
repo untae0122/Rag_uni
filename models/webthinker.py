@@ -175,6 +175,7 @@ async def generate_response(
                 )
                 return formatted_prompt, response.choices[0].text
         except Exception as e:
+            print(f"[Error] generate_response failed: {e}")
             if "maximum context length" in str(e).lower():
                 max_tokens = max_tokens // 2
             if attempt == retry_limit - 1:
@@ -615,7 +616,8 @@ async def process_single_sequence(
         )
         
         if not response:
-            print(f"[Warning] Empty response received in process_single_sequence. Breaking loop.")
+            print(f"[Warning] Empty response received in process_single_sequence. Marking sequence as finished.")
+            seq['finished'] = True
             break
         
         clean_response = response.replace('</think>\n', '')
