@@ -597,6 +597,7 @@ async def process_single_sequence(
             model_name=args.model_name,
             prompt=seq['prompt'],
             semaphore=semaphore,
+            generate_mode="completion", # Use completion to avoid nested templating
             temperature=args.temperature,
             top_p=args.top_p,
             max_tokens=args.max_tokens,

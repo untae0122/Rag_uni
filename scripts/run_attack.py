@@ -209,6 +209,9 @@ def main():
             # We append question.
             q = d['question']
             d['prompt'] = f"{instruction}\nQuestion: {q}\n"
+        
+        if len(data) > 0:
+            print(f"[DEBUG] First Prompt Sample:\n{data[0]['prompt'][:500]}...\n")
 
         from transformers import AutoTokenizer
         
