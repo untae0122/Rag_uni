@@ -173,7 +173,13 @@ async def generate_response(
                     },
                     timeout=3600,
                 )
-                return formatted_prompt, response.choices[0].text
+                
+                text = response.choices[0].text
+                if not text:
+                    print(f"[DEBUG] Empty response! Finish Reason: {response.choices[0].finish_reason}")
+                    print(f"[DEBUG] Prompt Tail (last 500): {formatted_prompt[-500:]!r}")
+                    
+                return formatted_prompt, text
         except Exception as e:
             print(f"[Error] generate_response failed: {e}")
             if "maximum context length" in str(e).lower():
@@ -647,15 +653,9 @@ class WebThinkerAgent:
         self.tokenizer = tokenizer
         self.aux_tokenizer = aux_tokenizer
         
-        # Initialize Clients
-        self.client = AsyncOpenAI(
-            api_key=args.api_key,
-            base_url=args.api_base_url,
-        )
-        self.aux_client = AsyncOpenAI(
-            api_key=args.aux_api_key,
-            base_url=args.aux_api_base_url,
-        )
+        # Initialize Clients (Moved to run_batch to ensure correct loop)
+        self.client = None
+        self.aux_client = None
         
         # Initialize Retriever
         if args.search_engine == "e5":
@@ -672,7 +672,7 @@ class WebThinkerAgent:
         else:
             self.retriever = None
 
-        self.semaphore = asyncio.Semaphore(getattr(args, 'concurrent_limit', 10))
+        self.semaphore = None
         self.search_cache = {}
         self.url_cache = {}
 
@@ -680,6 +680,20 @@ class WebThinkerAgent:
         """
         inputs: List of dicts, each having 'prompt' and 'question' etc.
         """
+        # Initialize async objects here directly in the running loop
+        if self.client is None:
+             self.client = AsyncOpenAI(
+                api_key=self.args.api_key,
+                base_url=self.args.api_base_url,
+            )
+        if self.aux_client is None:
+            self.aux_client = AsyncOpenAI(
+                api_key=self.args.aux_api_key,
+                base_url=self.args.aux_api_base_url,
+            )
+        # Always create new semaphore for current loop
+        self.semaphore = asyncio.Semaphore(getattr(self.args, 'concurrent_limit', 10))
+
         tasks = []
         for i, item in enumerate(inputs):
             # Prepare sequence dict
