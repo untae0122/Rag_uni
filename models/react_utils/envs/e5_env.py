@@ -14,6 +14,9 @@ class E5WikiEnv(WikiEnv):
         self.last_search_poisoned_count = 0
         self.last_search_total_count = 0
         self.last_search_poisoned_flags = []  # 각 문서별 poisoned 여부 리스트
+        
+        self.cumulative_poisoned_count = 0
+        self.cumulative_total_count = 0
 
     def _get_info(self):
         info = super()._get_info()
@@ -22,7 +25,9 @@ class E5WikiEnv(WikiEnv):
             "any_poisoned": self.any_poisoned_retrieved,
             "poisoned_count": self.last_search_poisoned_count,
             "total_count": self.last_search_total_count,
-            "poisoned_flags": self.last_search_poisoned_flags  # 각 문서별 poisoned 여부 리스트
+            "poisoned_flags": self.last_search_poisoned_flags,  # 각 문서별 poisoned 여부 리스트
+            "cumulative_poisoned_count": self.cumulative_poisoned_count,
+            "cumulative_total_count": self.cumulative_total_count
         })
         return info
 
@@ -32,6 +37,8 @@ class E5WikiEnv(WikiEnv):
         self.last_search_poisoned_count = 0
         self.last_search_total_count = 0
         self.last_search_poisoned_flags = []
+        self.cumulative_poisoned_count = 0
+        self.cumulative_total_count = 0
         return super().reset(seed=seed, return_info=return_info, options=options)
 
     def search_step(self, entity):
@@ -40,6 +47,10 @@ class E5WikiEnv(WikiEnv):
         results = self.retriever.search(entity, k=self.k)
         poisoned_cnt = sum(1 for res in results if res.get('is_poisoned', False))
         total_cnt = len(results)
+        
+        self.cumulative_poisoned_count += poisoned_cnt
+        self.cumulative_total_count += total_cnt
+        
         print(f"[Retriever Results] {results}")
         print(f"Poisoned Count: {poisoned_cnt}/{total_cnt}")
         print("-"*50)
