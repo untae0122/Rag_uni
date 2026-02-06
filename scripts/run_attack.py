@@ -175,11 +175,14 @@ def main():
             max_new_tokens=args.max_new_tokens
         )
         # Results are list of dicts/strings? ReAct returns list of dicts with 'history', 'answer'.
-        # Merging with original data
+        # Merging with original data and renaming answer -> prediction
         final_results = []
         for d, r in zip(data, results):
-            d.update(r)
-            final_results.append(d)
+            merged = d.copy()
+            if 'answer' in r:
+                r['prediction'] = r.pop('answer')
+            merged.update(r)
+            final_results.append(merged)
         results = final_results
 
     elif args.model == "webthinker":
@@ -214,13 +217,33 @@ def main():
         
         agent = WebThinkerAgent(args, tokenizer=tokenizer, aux_tokenizer=aux_tokenizer)
         # WebThinkerAgent.run_batch is async
-        results = asyncio.run(agent.run_batch(data))
-        # results is list of dicts (seq)
+        model_results = asyncio.run(agent.run_batch(data))
+        
+        # Merge with original data and rename answer -> prediction
+        final_results = []
+        for d, r in zip(data, model_results):
+            merged = d.copy()
+            if 'answer' in r:
+                r['prediction'] = r.pop('answer')
+            merged.update(r)
+            final_results.append(merged)
+        results = final_results
         
     elif args.model == "corag":
         # CoRag Model
         agent = CoRagModel(args)
-        results = agent.run_batch(data)
+        model_results = agent.run_batch(data)
+        
+        # Merge with original data (CoRag results might already have prediction, but let's be consistent)
+        final_results = []
+        for d, r in zip(data, model_results):
+            merged = d.copy()
+            # CoRag usually returns 'prediction' and 'final_answer', and copies 'correct_answer'
+            # But let's ensure we keep 'answer' from d if r doesn't have it or has it differently
+            # CoRag result_item has 'correct_answer', not 'answer'. 
+            merged.update(r)
+            final_results.append(merged)
+        results = final_results
 
     # Calculate Metrics and Update Results with Correct Scores
     print(f"Calculating Metrics over {len(results)} samples...")
@@ -234,11 +257,11 @@ def main():
         # WebThinker: likely 'answer' or 'pred'
         # CoRag: 'pred'
         
-        # Heuristic to find prediction
-        prediction = item.get('answer', item.get('pred', item.get('prediction', '')))
+        # Heuristic to find prediction (Now standardized to 'prediction')
+        prediction = item.get('prediction', item.get('pred', item.get('answer', '')))
         
-        # Ground Truth from 'correct answer' as requested
-        ground_truth = item.get('correct answer', item.get('answer', ''))
+        # Ground Truth from 'answer' (should be preserved from original data now)
+        ground_truth = item.get('answer', item.get('correct answer', ''))
         
         if prediction is None:
              prediction = ""
@@ -256,7 +279,8 @@ def main():
             asr = False
         
         # Update item with correct metrics (overwrite potentially wrong wrapper metrics)
-        item['answer'] = prediction
+        item['prediction'] = prediction
+        # item['answer'] = prediction # Removing this to avoid confusion with GT
         # Since we already calculated em above, just use it.
         # actually check_accuracy calls exact_match_score.
         # But 'em' key in wrapper was boolean or int? Wrapper: int(score).

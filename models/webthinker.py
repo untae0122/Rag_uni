@@ -621,7 +621,7 @@ async def process_single_sequence(
         
     # Extract final answer for metric calculation
     # Using 'qa' mode as default for HotPotQA style
-    seq['answer'] = extract_answer_fn(seq['output'], mode='qa')
+    seq['answer'] = extract_answer_fn(seq['output'], mode='qa', extract_answer=True)
     
     # Convert sets to lists for JSON serialization
     seq['executed_search_queries'] = list(seq['executed_search_queries'])

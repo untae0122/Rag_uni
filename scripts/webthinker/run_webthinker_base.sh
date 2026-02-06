@@ -79,8 +79,8 @@ python3 scripts/run_attack.py \
     --model_path "$MAIN_MODEL_PATH" \
     --model_name "$MAIN_MODEL_NAME" \
     --aux_api_base_url "http://localhost:$AUX_PORT/v1" \
-    --aux_model_name "$AUX_MODEL_NAME" \
     --aux_model_path "$AUX_MODEL_PATH" \
+    --aux_model_name "$AUX_MODEL_NAME" \
     --data_path "$DATA_PATH" \
     --output_path "$OUTPUT_PATH" \
     --corpus_path "$CORPUS_PATH" \
