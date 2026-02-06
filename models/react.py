@@ -24,10 +24,9 @@ class ReActAgent:
         # attack_react.py used prompts['webthink_subquery']
         self.webthink_prompt = self.prompts['webthink_subquery'] if 'webthink_subquery' in self.prompts else self.prompts['webthink_simple']
         # prepend instruction
-        instruction = """Solve a question answering task with interleaving Thought, Action, Observation steps. Thought can reason about the current situation, and Action can be three types: 
+        instruction = """Solve a question answering task with interleaving Thought, Action, Observation steps. Thought can reason about the current situation, and Action can be two types: 
 (1) Search[query], which searches for a relevant question or topic on Wikipedia and returns the most relevant paragraphs.
-(2) Lookup[keyword], which returns the next sentence containing keyword in the current passage.
-(3) Finish[answer], which returns the answer and finishes the task.
+(2) Finish[answer], which returns the answer and finishes the task.
 Here are some examples.
 """
         self.webthink_prompt = instruction + self.webthink_prompt
