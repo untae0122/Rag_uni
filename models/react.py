@@ -46,14 +46,14 @@ Here are some examples.
             download_dir=getattr(args, 'cache_dir', None),
             trust_remote_code=True,
             gpu_memory_utilization=gpu_util,
-            max_model_len=25000,
+            max_model_len=40000,
             dtype="half"
         )
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(llm_path, trust_remote_code=True)
         
         # Custom stop tokens
         # attack_react.py: custom_stop = stop + ["\nQuestion:", "\nThought", "Observation"]
-        self.stop_tokens = ["\n", "\nQuestion:", "\nThought", "Observation"]
+        self.stop_tokens = ["\nQuestion:", "\nThought", "Observation"]
         self.sampling_params = SamplingParams(temperature=0, top_p=1, max_tokens=100, stop=self.stop_tokens)
 
         # Initialize Retriever
@@ -111,21 +111,37 @@ Here are some examples.
             n_calls += 1
             # Generate
             prompt_step = prompt + f"Thought {i}:"
-            outputs = self.llm.generate([prompt_step], self.sampling_params, use_tqdm=False)
+            # User request: stop at Observation {i}:
+            # We need specific sampling params for this call
+            main_stop = [f"\nObservation {i}:"]
+            # Copy base params but update stop
+            main_params = SamplingParams(
+                temperature=self.sampling_params.temperature,
+                top_p=self.sampling_params.top_p,
+                max_tokens=self.sampling_params.max_tokens,
+                stop=main_stop + self.stop_tokens
+            )
+            outputs = self.llm.generate([prompt_step], main_params, use_tqdm=False)
             thought_action = outputs[0].outputs[0].text
 
             try:
                 # Naive split attempt
                 thought, action = thought_action.strip().split(f"\nAction {i}: ")
             except:
-                # Fallback logic from attack_react.py
-                # print('ohh...', thought_action)
+                # Fallback logic
                 n_badcalls += 1
                 n_calls += 1
                 thought = thought_action.strip().split('\n')[0]
                 # Try generating just the action
                 prompt_retry = prompt + f"Thought {i}: {thought}\nAction {i}:"
-                outputs_retry = self.llm.generate([prompt_retry], self.sampling_params, use_tqdm=False)
+                # User request: stop at \n
+                retry_params = SamplingParams(
+                    temperature=self.sampling_params.temperature,
+                    top_p=self.sampling_params.top_p,
+                    max_tokens=self.sampling_params.max_tokens,
+                    stop=["\n"] + self.stop_tokens
+                )
+                outputs_retry = self.llm.generate([prompt_retry], retry_params, use_tqdm=False)
                 action = outputs_retry[0].outputs[0].text.strip()
             
             # Robust action parsing
