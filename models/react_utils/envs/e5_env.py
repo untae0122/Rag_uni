@@ -91,7 +91,7 @@ class E5WikiEnv(WikiEnv):
                 
                 # 2. Get observation (first 5 sentences) for this document
                 #doc_obs = self.get_page_obs(f"{title}\n{content}")
-                doc_obs = self.page
+                doc_obs = f"{title}\n{content}"
                 obs_list.append(doc_obs)
             
             # Combine observations

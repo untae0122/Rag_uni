@@ -107,7 +107,7 @@ Here are some examples.
         info = {}
         r = 0
 
-        for i in range(1, 8):
+        for i in range(1, 10):
             n_calls += 1
             # Generate
             prompt_step = prompt + f"Thought {i}:"
@@ -135,6 +135,7 @@ Here are some examples.
                 # Try generating just the action
                 prompt_retry = prompt + f"Thought {i}: {thought}\nAction {i}:"
                 # User request: stop at \n
+                # so_kyuho adds extra stop tokens to everything, so we should too for exact match
                 retry_params = SamplingParams(
                     temperature=self.sampling_params.temperature,
                     top_p=self.sampling_params.top_p,
