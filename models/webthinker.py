@@ -709,6 +709,325 @@ async def process_single_sequence(
     return seq
 
 
+async def process_single_sequence_without_web_explorer(
+    seq: Dict,
+    client: AsyncOpenAI,
+    aux_client: AsyncOpenAI,
+    semaphore: asyncio.Semaphore,
+    args: argparse.Namespace,
+    search_cache: Dict,
+    url_cache: Dict,
+    retriever=None,
+    tokenizer=None,
+    aux_tokenizer=None
+) -> Dict:
+    sidx = seq.get('_sample_idx', 0)
+    stotal = seq.get('_total_samples', 0)
+
+    MAX_TOKENS = 40000
+    total_tokens = len(seq['prompt'].split())
+    
+    seq['web_explorer'] = []
+    seq['step_stats'] = []
+
+    formatted_prompt, response = await generate_response(
+        client=client,
+        model_name=args.model_name,
+        prompt=seq['prompt'],
+        semaphore=semaphore,
+        temperature=args.temperature,
+        top_p=args.top_p,
+        max_tokens=args.max_tokens,
+        repetition_penalty=args.repetition_penalty,
+        top_k=args.top_k_sampling,
+        min_p=args.min_p,
+        stop=[END_SEARCH_QUERY],
+        tokenizer=tokenizer,
+        aux_tokenizer=aux_tokenizer,
+        seed=getattr(args, 'seed', None)
+    )
+    
+    if stotal > 0:
+        print(f"[{sidx}/{stotal}] Started")
+    
+    clean_response = response.replace('</think>\n', '')
+    tokens_this_response = len(response.split())
+    total_tokens += tokens_this_response
+    
+    seq['output'] += clean_response
+    seq['history'].append(clean_response)
+    seq['original_prompt'] = formatted_prompt
+    seq['prompt'] = formatted_prompt + clean_response
+
+    while not seq['finished']:
+        if not seq['output'].rstrip().endswith(END_SEARCH_QUERY):
+            final_thought = clean_response.strip()
+            if final_thought:
+                _step = len(seq['step_stats'])
+                seq['step_stats'].append({
+                    'step': _step,
+                    'thought': final_thought,
+                    'search_query': None,
+                    'action': 'Finish[]',
+                    'observation': '[DEBUG]Answer generated without additional search',
+                    'search_documents': None,
+                    'extracted_info': None,
+                    'is_search': False,
+                    'source': 'main',
+                })
+            seq['finished'] = True
+            break
+        
+        search_query = extract_between(response, BEGIN_SEARCH_QUERY, END_SEARCH_QUERY)
+        seq['search_count'] += 1
+        current_step = seq['search_count']
+        if stotal > 0:
+             print(f"[{sidx}/{stotal}] Step {current_step}")
+
+        thought_before_search = clean_response.split(BEGIN_SEARCH_QUERY)[0].strip() if BEGIN_SEARCH_QUERY in clean_response else clean_response.strip()
+
+        if seq['search_count'] <= args.max_search_limit and total_tokens < MAX_TOKENS:
+            if search_query is None or len(search_query) <= 5 or END_SEARCH_QUERY in search_query or search_query in invalid_search_queries: 
+                continue
+
+            if search_query in seq['executed_search_queries']:
+                append_text = f"\n\n{BEGIN_SEARCH_RESULT}You have already searched for this query.{END_SEARCH_RESULT}\n\nOkay,"
+                seq['prompt'] += append_text
+                seq['output'] += append_text
+                seq['history'].append(append_text)
+                total_tokens += len(append_text.split())
+                continue
+
+            # _, search_intent = await generate_response(
+            #     client=aux_client,
+            #     model_name=args.aux_model_name,
+            #     max_tokens=1000,
+            #     prompt=get_search_intent_instruction(seq['output']),
+            #     semaphore=semaphore,
+            #     tokenizer=tokenizer,
+            #     aux_tokenizer=aux_tokenizer,
+            #     seed=getattr(args, 'seed', None)
+            # )
+            search_intent = ""
+            results = {}
+            if search_query in search_cache:
+                print(f"[Very Warning]Search query {search_query} found in search cache")
+                results = search_cache[search_query]
+            else:
+                try:
+                    if args.search_engine == "e5":
+                        
+                        if retriever:
+                            results = retriever.search(search_query, k=args.top_k)
+                        else:
+                            results = []
+                    search_cache[search_query] = results
+                except Exception as e:
+                    results = {}
+
+            if args.search_engine == "e5":
+                relevant_info = extract_relevant_info_e5(results, top_k=args.top_k)
+            else:
+                relevant_info = []
+
+            formatted_documents = format_search_results(relevant_info)
+
+            # analysis, explorer_prompt, explorer_steps = await generate_deep_web_explorer(
+            #     client=client,
+            #     aux_client=aux_client,
+            #     search_query=search_query,
+            #     search_intent=search_intent,
+            #     document=formatted_documents,
+            #     args=args,
+            #     search_cache=search_cache,
+            #     url_cache=url_cache,
+            #     semaphore=semaphore,
+            #     retriever=retriever,
+            #     tokenizer=tokenizer,
+            #     aux_tokenizer=aux_tokenizer
+            # )
+
+            # extracted_info = extract_answer_fn(analysis, mode='summary')
+            analysis = ""
+            explorer_prompt = ""
+            extracted_info = formatted_documents
+            explorer_steps=[]
+
+            seq['web_explorer'].append({
+                "search_query": search_query,
+                "Input": explorer_prompt,
+                "Output": analysis,
+                "Extracted_info": extracted_info
+            })
+            
+            append_text = f"\n\n{BEGIN_SEARCH_RESULT}{extracted_info}{END_SEARCH_RESULT}\n\n"
+            seq['prompt'] += append_text
+            seq['output'] += append_text
+            seq['history'].append(append_text)
+            
+            main_search_docs = [{k: v for k, v in d.items() if k != 'snippet'} for d in relevant_info if isinstance(d, dict)]
+            
+            # Calculate poisoned flags for main determination
+            poisoned_flags = [d.get('is_poisoned', False) for d in relevant_info if isinstance(d, dict)]
+            
+            # 1. Main Search Step
+            _step = len(seq['step_stats'])
+            seq['step_stats'].append({
+                 'step': _step,
+                 'thought': thought_before_search,
+                 'search_query': search_query,
+                 'search_intent': search_intent,
+                 'action': f"Search[{search_query}]",
+                 'observation': extracted_info,
+                 'search_documents': main_search_docs,
+                 'extracted_info': None,
+                 'is_search': True,
+                 'source': 'main',
+                 'poisoned_flags': poisoned_flags,
+                 'any_poisoned': any(poisoned_flags)
+            })
+            
+            # 2. Web Explorer Steps
+            
+            for es in explorer_steps:
+                 if es.get("type") != "search":
+                     continue
+                 _step = len(seq['step_stats'])
+                 seq['step_stats'].append({
+                    'step': _step,
+                    'thought': es.get('thought', ''),
+                    'search_query': es.get('search_query', ''),
+                    'action': f"Search[{es.get('search_query', '')}]",
+                    'observation': es.get('observation', ''),
+                    'search_documents': es.get('search_documents', []),
+                    'extracted_info': None,
+                    'is_search': True,
+                    'source': 'web_explorer',
+                 })
+
+            # 3. Conclusion Step
+            _step = len(seq['step_stats'])
+            seq['step_stats'].append({
+                'step': _step,
+                'thought': extracted_info,
+                'search_query': None,
+                'action': None,
+                'observation': None,
+                'search_documents': None,
+                'extracted_info': extracted_info,
+                'is_search': False,
+                'source': 'web_explorer'
+            })
+            
+            total_tokens += len(append_text.split())
+            seq['executed_search_queries'].add(search_query)
+
+        else:
+            append_text = f"\n\n{BEGIN_SEARCH_RESULT}You have reached the search limit. You are not allowed to search.{END_SEARCH_RESULT}\n\n"
+            seq['prompt'] += append_text
+            seq['output'] += append_text
+            seq['history'].append(append_text)
+            
+            # Extract thought before final answer
+            last_thought = clean_response.split(BEGIN_SEARCH_RESULT)[0].strip() if BEGIN_SEARCH_RESULT in clean_response else clean_response.strip()
+            
+            _, final_response = await generate_response(
+                client=client,
+                prompt=seq['prompt'],
+                semaphore=semaphore,
+                temperature=args.temperature,
+                top_p=args.top_p,
+                max_tokens=args.max_tokens,
+                repetition_penalty=1.1,
+                top_k=args.top_k_sampling,
+                min_p=args.min_p,
+                model_name=args.model_name,
+                generate_mode="completion",
+                bad_words=[f"{END_SEARCH_RESULT}\n\n{tokenizer.eos_token}", f"{END_SEARCH_QUERY}{tokenizer.eos_token}"],
+                tokenizer=tokenizer,
+                aux_tokenizer=aux_tokenizer,
+                seed=getattr(args, 'seed', None)
+            )
+            
+            clean_final_response = final_response.replace('</think>\n', '')
+            seq['output'] += clean_final_response
+            seq['history'].append(clean_final_response)
+            
+            limit_obs = 'You have reached the search limit. You are not allowed to search.'
+            # Step 1: main thought that led to (rejected) search -> observation = limit message
+            _step = len(seq['step_stats'])
+            seq['step_stats'].append({
+                'step': _step,
+                'thought': last_thought,
+                'search_query': None,
+                'action': 'Finish[]',
+                'observation': limit_obs,
+                'search_documents': None,
+                'extracted_info': None,
+                'is_search': False,
+                'source': 'main',
+            })
+            # Step 2: main's response after seeing limit (final answer)
+            _step = len(seq['step_stats'])
+            seq['step_stats'].append({
+                'step': _step,
+                'thought': clean_final_response,
+                'search_query': None,
+                'action': 'Finish[]',
+                'observation': limit_obs,
+                'search_documents': None,
+                'extracted_info': None,
+                'is_search': False,
+                'source': 'main',
+            })
+            
+            seq['finished'] = True
+            break
+        
+        # Next generation
+        formatted_prompt, response = await generate_response(
+            client=client,
+            model_name=args.model_name,
+            prompt=seq['prompt'],
+            semaphore=semaphore,
+            generate_mode="completion", # Use completion to avoid nested templating
+            temperature=args.temperature,
+            top_p=args.top_p,
+            max_tokens=args.max_tokens,
+            repetition_penalty=args.repetition_penalty,
+            top_k=args.top_k_sampling,
+            min_p=args.min_p,
+            stop=[END_SEARCH_QUERY],
+            tokenizer=tokenizer,
+            aux_tokenizer=aux_tokenizer,
+            seed=getattr(args, 'seed', None)
+        )
+        
+        if not response:
+            print(f"[Warning] Empty response received in process_single_sequence. Marking sequence as finished.")
+            seq['finished'] = True
+            break
+        
+        clean_response = response.replace('</think>\n', '')
+        tokens_this_response = len(response.split())
+        total_tokens += tokens_this_response
+        
+        seq['output'] += clean_response
+        seq['history'].append(clean_response)
+        seq['original_prompt'] = formatted_prompt # Updates
+        seq['prompt'] = formatted_prompt + clean_response
+        
+        seq['prompt'] = formatted_prompt + clean_response
+        
+    # Extract final answer for metric calculation
+    # Using 'qa' mode as default for HotPotQA style
+    seq['answer'] = extract_answer_fn(seq['output'], mode='qa', extract_answer=True)
+    
+    # Convert sets to lists for JSON serialization
+    seq['executed_search_queries'] = list(seq['executed_search_queries'])
+    
+    return seq
+
 class WebThinkerAgent:
     def __init__(self, args, tokenizer=None, aux_tokenizer=None):
         self.args = args
@@ -774,6 +1093,87 @@ class WebThinkerAgent:
             
             tasks.append(
                 process_single_sequence(
+                    seq=seq,
+                    client=self.client,
+                    aux_client=self.aux_client,
+                    semaphore=self.semaphore,
+                    args=self.args,
+                    search_cache=self.search_cache,
+                    url_cache=self.url_cache,
+                    retriever=self.retriever,
+                    tokenizer=self.tokenizer,
+                    aux_tokenizer=self.aux_tokenizer
+                )
+            )
+        
+        results = await asyncio.gather(*tasks)
+        return results
+
+class WebThinkerAgent_without_web_explorer:
+    def __init__(self, args, tokenizer=None, aux_tokenizer=None):
+        self.args = args
+        self.tokenizer = tokenizer
+        self.aux_tokenizer = aux_tokenizer
+        
+        # Initialize Clients (Moved to run_batch to ensure correct loop)
+        self.client = None
+        self.aux_client = None
+        
+        # Initialize Retriever
+        if args.search_engine == "e5":
+            print(f"Initializing Retriever from {args.index_dir}")
+            retrieval_model_name = getattr(args, 'retrieval_model_name', 'intfloat/e5-large-v2') 
+            self.retriever = E5_Retriever(
+                corpus_path=args.corpus_path,
+                index_dir=args.index_dir,
+                poisoned_corpus_path=args.poisoned_corpus_path,
+                poisoned_index_dir=args.poisoned_index_dir,
+                model_name=retrieval_model_name,
+                device="cuda" if torch.cuda.is_available() else "cpu"
+            )
+        else:
+            self.retriever = None
+
+        self.semaphore = None
+        self.search_cache = {}
+        self.url_cache = {}
+
+    async def run_batch(self, inputs: List[Dict]):
+        """
+        inputs: List of dicts, each having 'prompt' and 'question' etc.
+        """
+        # Initialize async objects here directly in the running loop
+        if self.client is None:
+             self.client = AsyncOpenAI(
+                api_key=self.args.api_key,
+                base_url=self.args.api_base_url,
+            )
+        if self.aux_client is None:
+            self.aux_client = AsyncOpenAI(
+                api_key=self.args.aux_api_key,
+                base_url=self.args.aux_api_base_url,
+            )
+        # Always create new semaphore for current loop
+        self.semaphore = asyncio.Semaphore(getattr(self.args, 'concurrent_limit', 10))
+
+        tasks = []
+        for i, item in enumerate(inputs):
+            # Prepare sequence dict
+            seq = {
+                'prompt': item['prompt'], # Prompt should be pre-constructed
+                'history': [],
+                'output': "",
+                'finished': False,
+                'search_count': 0,
+                'executed_search_queries': set(),
+                'original_prompt': "",
+                'question': item.get('question', ''), # Metadata
+                '_sample_idx': i+1,
+                '_total_samples': len(inputs)
+            }
+            
+            tasks.append(
+                process_single_sequence_without_web_explorer(
                     seq=seq,
                     client=self.client,
                     aux_client=self.aux_client,
