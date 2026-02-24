@@ -278,8 +278,7 @@ async def process_single_sequence(
                     top_k=getattr(args, 'top_k_sampling', 20),
                     min_p=args.min_p,
                     model_name=args.model_name,
-                    semaphore=semaphore,
-                    seed=getattr(args, 'seed', None)
+                    semaphore=semaphore
                 )
 
                 # Output appending
