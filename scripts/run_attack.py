@@ -74,6 +74,10 @@ def parse_args():
     parser.add_argument("--best_n", type=int, default=4, help="CoRag best of n")
     parser.add_argument("--max_len", type=int, default=4096, help="CoRag max message length")
 
+    # Search-o1 Specific
+    parser.add_argument("--max_turn", type=int, default=15, help="Search-o1 max turns")
+    parser.add_argument("--max_doc_len", type=int, default=3000, help="Maximum length of each searched document")
+
     return parser.parse_args()
 
 def set_seed(seed):
