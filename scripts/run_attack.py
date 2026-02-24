@@ -18,7 +18,7 @@ if project_root not in sys.path:
 from models.react import ReActAgent
 from models.webthinker import WebThinkerAgent
 from models.corag import CoRagModel
-from models.corag import CoRagModel
+from models.search_o1 import SearchO1Agent
 from src.retrieval import indexer
 from src.evaluation.metrics import f1_score, exact_match_score, check_asr
 
@@ -26,7 +26,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Unified Attack Runner for RAG Experiments")
     
     # Common Arguments
-    parser.add_argument("--model", type=str, required=True, choices=["react", "webthinker", "corag"], help="Model to run")
+    parser.add_argument("--model", type=str, required=True, choices=["react", "webthinker", "corag", "search_o1"], help="Model to run")
     parser.add_argument("--data_path", type=str, required=True, help="Path to input dataset JSON/JSONL")
     parser.add_argument("--output_path", type=str, required=True, help="Path to save results")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
@@ -239,6 +239,25 @@ def main():
             # CoRag usually returns 'prediction' and 'final_answer', and copies 'correct_answer'
             # But let's ensure we keep 'answer' from d if r doesn't have it or has it differently
             # CoRag result_item has 'correct_answer', not 'answer'. 
+            merged.update(r)
+            final_results.append(merged)
+        results = final_results
+
+    elif args.model == "search_o1":
+        from transformers import AutoTokenizer
+        tokenizer = None
+        if args.model_path:
+            tokenizer = AutoTokenizer.from_pretrained(args.model_path, trust_remote_code=True)
+            
+        agent = SearchO1Agent(args, tokenizer=tokenizer)
+        model_results = asyncio.run(agent.run_batch(data))
+        
+        # Merge with original data and rename answer -> prediction
+        final_results = []
+        for d, r in zip(data, model_results):
+            merged = d.copy()
+            if 'answer' in r:
+                r['prediction'] = r.pop('answer')
             merged.update(r)
             final_results.append(merged)
         results = final_results
