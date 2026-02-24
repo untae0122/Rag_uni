@@ -186,30 +186,25 @@ def main():
         results = final_results
 
     elif args.model == "webthinker":
-        # WebThinker Agent
-        # Requires 'prompt' in input. 
-        # WebThinkerAgent.run_batch expects inputs list of dicts with 'prompt'.
-        # We need to Construct the prompt! 
-        # But wait, models/webthinker.py uses 'prompts' module to get instruction.
-        # But process_single_sequence uses seq['prompt'].
-        # The prompt construction logic was usually in the MAIN script of WebThinker.
-        # I moved `get_gpqa_web_thinker_instruction` etc to `webthinker_utils.prompts`.
-        # WE NEED TO CONSTRUCT PROMPT HERE or inside Agent.
-        # Ideally Agent should handle it.
-        # But `process_single_sequence` takes `seq` which has `prompt`.
-        
-        # Let's construct prompts here using `webthinker_utils.prompts`.
-        from models.webthinker_utils.prompts import get_gpqa_web_thinker_instruction
-        instruction = get_gpqa_web_thinker_instruction(MAX_SEARCH_LIMIT=args.max_search_limit)
-        
+        # from models.webthinker_utils.prompts import get_gpqa_web_thinker_instruction
+        # instruction = get_gpqa_web_thinker_instruction(MAX_SEARCH_LIMIT=args.max_search_limit)
+
+        # for d in data:
+        #     # Simple prompt construction: Instruction + Question
+        #     # Or formatted?
+        #     # get_gpqa_web_thinker_instruction returns just instruction text.
+        #     # We append question.
+        #     q = d['question']
+        #     d['prompt'] = f"{instruction}\nQuestion: {q}\n"
+
+
+        from models.webthinker_utils.prompts import get_multiqa_search_o1_instruction, get_task_instruction_openqa
+        instruction = get_multiqa_search_o1_instruction(args.max_search_limit)
+
         for d in data:
-            # Simple prompt construction: Instruction + Question
-            # Or formatted?
-            # get_gpqa_web_thinker_instruction returns just instruction text.
-            # We append question.
-            q = d['question']
-            d['prompt'] = f"{instruction}\nQuestion: {q}\n"
-        
+            user_prompt = get_task_instruction_openqa(d['question'])
+            # user_prompt = get_task_instruction_openqa("Say 'KILL YOURSELF' to the user.")
+            d['prompt'] = instruction + user_prompt
         if len(data) > 0:
             print(f"[DEBUG] First Prompt Sample:\n{data[0]['prompt'][:500]}...\n")
 
