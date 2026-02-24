@@ -54,7 +54,13 @@ Here are some examples.
         # Custom stop tokens
         # attack_react.py: custom_stop = stop + ["\nQuestion:", "\nThought", "Observation"]
         self.stop_tokens = ["\nQuestion:", "\nThought", "Observation"]
-        self.sampling_params = SamplingParams(temperature=0, top_p=1, max_tokens=100, stop=self.stop_tokens)
+        self.sampling_params = SamplingParams(
+            temperature=getattr(args, 'temperature', 0.0), 
+            top_p=getattr(args, 'top_p', 1.0), 
+            max_tokens=getattr(args, 'max_tokens', 100), 
+            stop=self.stop_tokens,
+            seed=getattr(args, 'seed', None)
+        )
 
         # Initialize Retriever
         print(f"Initializing Retriever from {args.index_dir}")
@@ -119,7 +125,8 @@ Here are some examples.
                 temperature=self.sampling_params.temperature,
                 top_p=self.sampling_params.top_p,
                 max_tokens=self.sampling_params.max_tokens,
-                stop=main_stop + self.stop_tokens
+                stop=main_stop + self.stop_tokens,
+                seed=self.sampling_params.seed
             )
             outputs = self.llm.generate([prompt_step], main_params, use_tqdm=False)
             thought_action = outputs[0].outputs[0].text
@@ -136,11 +143,13 @@ Here are some examples.
                 prompt_retry = prompt + f"Thought {i}: {thought}\nAction {i}:"
                 # User request: stop at \n
                 # so_kyuho adds extra stop tokens to everything, so we should too for exact match
+                retry_seed = self.sampling_params.seed + i if self.sampling_params.seed is not None else None
                 retry_params = SamplingParams(
-                    temperature=self.sampling_params.temperature,
+                    temperature=min(1.0, self.sampling_params.temperature + 0.1), # slightly increase temp for retry
                     top_p=self.sampling_params.top_p,
                     max_tokens=self.sampling_params.max_tokens,
-                    stop=["\n"] + self.stop_tokens
+                    stop=["\n"] + self.stop_tokens,
+                    seed=retry_seed
                 )
                 outputs_retry = self.llm.generate([prompt_retry], retry_params, use_tqdm=False)
                 action = outputs_retry[0].outputs[0].text.strip()

@@ -133,7 +133,8 @@ async def generate_response(
     retry_limit: int = 3,
     bad_words: List[str] = None,
     tokenizer=None,
-    aux_tokenizer=None
+    aux_tokenizer=None,
+    seed: int = None
 ) -> Tuple[str, str]:
     """Generate a single response with retry logic"""
     if bad_words is None:
@@ -164,6 +165,7 @@ async def generate_response(
                     top_p=top_p,
                     max_tokens=max_tokens,
                     stop=stop,
+                    seed=seed,
                     extra_body={
                         'top_k': top_k,
                         'include_stop_str_in_output': True,
@@ -236,7 +238,8 @@ async def generate_deep_web_explorer(
             min_p=args.min_p,
             stop=[END_SEARCH_QUERY, END_CLICK_LINK],
             tokenizer=tokenizer,
-            aux_tokenizer=aux_tokenizer
+            aux_tokenizer=aux_tokenizer,
+            seed=getattr(args, 'seed', None)
         )
 
         if first_generation:
@@ -322,7 +325,8 @@ async def generate_deep_web_explorer(
                 prompt=get_click_intent_instruction(output),
                 semaphore=semaphore,
                 tokenizer=tokenizer, 
-                aux_tokenizer=aux_tokenizer
+                aux_tokenizer=aux_tokenizer,
+                seed=getattr(args, 'seed', None)
             )
 
             if url and click_intent:
@@ -353,7 +357,8 @@ async def generate_deep_web_explorer(
                         max_tokens=3600,
                         model_name=args.aux_model_name,
                         tokenizer=tokenizer,
-                        aux_tokenizer=aux_tokenizer
+                        aux_tokenizer=aux_tokenizer,
+                        seed=getattr(args, 'seed', None)
                     )
 
                 click_result = f"\n{BEGIN_CLICK_RESULT}\n{summary}\n{END_CLICK_RESULT}\n"
@@ -381,7 +386,8 @@ async def generate_deep_web_explorer(
             top_k=args.top_k_sampling,
             min_p=args.min_p,
             tokenizer=tokenizer,
-            aux_tokenizer=aux_tokenizer
+            aux_tokenizer=aux_tokenizer,
+            seed=getattr(args, 'seed', None)
         )
         output += final_response
 
@@ -422,7 +428,8 @@ async def process_single_sequence(
         min_p=args.min_p,
         stop=[END_SEARCH_QUERY],
         tokenizer=tokenizer,
-        aux_tokenizer=aux_tokenizer
+        aux_tokenizer=aux_tokenizer,
+        seed=getattr(args, 'seed', None)
     )
     
     if stotal > 0:
@@ -483,7 +490,8 @@ async def process_single_sequence(
                 prompt=get_search_intent_instruction(seq['output']),
                 semaphore=semaphore,
                 tokenizer=tokenizer,
-                aux_tokenizer=aux_tokenizer
+                aux_tokenizer=aux_tokenizer,
+                seed=getattr(args, 'seed', None)
             )
 
             results = {}
@@ -617,7 +625,8 @@ async def process_single_sequence(
                 generate_mode="completion",
                 bad_words=[f"{END_SEARCH_RESULT}\n\n{tokenizer.eos_token}", f"{END_SEARCH_QUERY}{tokenizer.eos_token}"],
                 tokenizer=tokenizer,
-                aux_tokenizer=aux_tokenizer
+                aux_tokenizer=aux_tokenizer,
+                seed=getattr(args, 'seed', None)
             )
             
             clean_final_response = final_response.replace('</think>\n', '')
@@ -670,7 +679,8 @@ async def process_single_sequence(
             min_p=args.min_p,
             stop=[END_SEARCH_QUERY],
             tokenizer=tokenizer,
-            aux_tokenizer=aux_tokenizer
+            aux_tokenizer=aux_tokenizer,
+            seed=getattr(args, 'seed', None)
         )
         
         if not response:

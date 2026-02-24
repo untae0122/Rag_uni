@@ -85,6 +85,7 @@ async def generate_response(
     retry_limit: int = 3,
     tokenizer=None,
     stop: List[str] = [END_SEARCH_QUERY],
+    seed: int = None,
 ) -> str:
     """Generate a single response with retry logic"""
     for attempt in range(retry_limit):
@@ -98,6 +99,7 @@ async def generate_response(
                     top_p=top_p,
                     max_tokens=min(max_tokens, 32768),
                     stop=stop,
+                    seed=seed,
                     extra_body={
                         'top_k': top_k,
                         'include_stop_str_in_output': True,
@@ -144,6 +146,7 @@ async def generate_webpage_to_reasonchain(
         min_p=min_p,
         model_name=model_name,
         tokenizer=None,
+        seed=getattr(client, '_seed', None),  # Pass seed implicitly or explicitly
     )
     
     extracted_info = extract_answer_fn(raw_output, mode='infogen')
@@ -184,7 +187,8 @@ async def process_single_sequence(
             top_k=getattr(args, 'top_k_sampling', 20),
             min_p=args.min_p,
             model_name=args.model_name,
-            tokenizer=tokenizer
+            tokenizer=tokenizer,
+            seed=getattr(args, 'seed', None)
         )
         
         seq['history'].append(text)
@@ -275,6 +279,7 @@ async def process_single_sequence(
                     min_p=args.min_p,
                     model_name=args.model_name,
                     semaphore=semaphore,
+                    seed=getattr(args, 'seed', None)
                 )
 
                 # Output appending
